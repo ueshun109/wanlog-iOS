@@ -323,7 +323,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.ueshun.wanlog.stg;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.ueshun.template.dev";
+				PROVISIONING_PROFILE_SPECIFIER = "Bitrise iOS app-store - (com.ueshun.wanlog.stg)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
