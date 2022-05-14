@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6F74EB3A282F622200954825 /* AppFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 6F74EB39282F622200954825 /* AppFeature */; };
+		6FAB400A282F707B0060BE17 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6FAB4009282F707B0060BE17 /* GoogleService-Info.plist */; };
 		F4916F2C263FD20300D07B94 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4916F2B263FD20300D07B94 /* App.swift */; };
 		F4916F2E263FD20300D07B94 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4916F2D263FD20300D07B94 /* ContentView.swift */; };
 		F4916F30263FD20500D07B94 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F4916F2F263FD20500D07B94 /* Assets.xcassets */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		6FAB4009282F707B0060BE17 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Staging/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		F4916F28263FD20300D07B94 /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F4916F2B263FD20300D07B94 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		F4916F2D263FD20300D07B94 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -63,6 +65,7 @@
 				F4916F2D263FD20300D07B94 /* ContentView.swift */,
 				F4916F2F263FD20500D07B94 /* Assets.xcassets */,
 				F4916F34263FD20500D07B94 /* Info.plist */,
+				6FAB4009282F707B0060BE17 /* GoogleService-Info.plist */,
 				F4916F31263FD20500D07B94 /* Preview Content */,
 			);
 			path = iOS;
@@ -137,6 +140,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F4916F33263FD20500D07B94 /* Preview Assets.xcassets in Resources */,
+				6FAB400A282F707B0060BE17 /* GoogleService-Info.plist in Resources */,
 				F4916FB62643A0DF00D07B94 /* Settings.bundle in Resources */,
 				F4916F30263FD20500D07B94 /* Assets.xcassets in Resources */,
 			);
