@@ -24,6 +24,10 @@ debug-build:
 generate-license:
 	swift run -c release --package-path ./BuildTools license-plist --output-path App/Settings.bundle --package-paths ./Package.swift
 
+.PHONY: swift-lint
+swift-lint:
+	swift run -c release --package-path ./BuildTools swift-format lint --configuration ./BuildTools/.swift-format -r ./Sources
+
 .PHONY: swift-format
 swift-format:
 	swift run -c release --package-path ./BuildTools swift-format format --configuration ./BuildTools/.swift-format -r ./Sources -i
