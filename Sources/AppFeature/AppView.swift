@@ -1,36 +1,31 @@
+import Core
+import DataStore
+import OnboardingFeature
 import SwiftUI
 import UserNotificationClient
 
-public struct AppView: View {
-  private let viewModel: AppViewModel
+public struct AppView<Router: Routing>: View where Router._Route == AppRoute {
+  private let router: Router
+  @StateObject private var userState: UserState
 
-  public init(userNotifications: UserNotificationClient) {
-    self.viewModel = AppViewModel(userNotifications: userNotifications)
+  public init(userNotifications: UserNotificationClient, router: Router) {
+    self._userState = .init(wrappedValue: .init(authenticator: .live))
+    self.router = router
   }
 
   public var body: some View {
-    Button("Crash") {
-      fatalError()
-    }
-  }
-}
-
-import Combine
-
-final class AppViewModel: ObservableObject {
-  private let userNotifications: UserNotificationClient
-  private var cancellables: Set<AnyCancellable> = []
-
-  init(userNotifications: UserNotificationClient) {
-    self.userNotifications = userNotifications
-
-    self.userNotifications.requestAuthorization([.alert, .badge, .sound])
-      .receive(on: DispatchQueue.main)
-      .sink { response in
-      } receiveValue: { result in
-        guard result else { return }
-        UIApplication.shared.registerForRemoteNotifications()
+    ZStack {
+      NavigationView {
+        if userState.isSignIn {
+          router.view(for: .home)
+        } else {
+          router.view(for: .authentication)
+        }
       }
-      .store(in: &self.cancellables)
+    }
+    .environmentObject(userState)
+    .task {
+      await userState.confirmAuthStatus()
+    }
   }
 }

@@ -13,7 +13,7 @@ public final class AppDelegate: NSObject, UIApplicationDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
   ) -> Bool {
     // Firebase initialize.
-//    FirebaseApp.configure()
+    FirebaseApp.configure()
 
     userNotification.delegate
       .sink { _ in

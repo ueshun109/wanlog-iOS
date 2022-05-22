@@ -8,7 +8,7 @@ struct TemplateApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
   var body: some Scene {
     WindowGroup {
-      AppView(userNotifications: userNotifications)
+      AppView(userNotifications: userNotifications, router: AppRouter())
     }
   }
 }
