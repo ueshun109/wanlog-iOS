@@ -20,4 +20,9 @@ public extension Color {
     public static let tertiary = Color("Label/Tertiary", bundle: .module)
     public static let quaternary = Color("Label/Quaternary", bundle: .module)
   }
+
+  struct Separator {
+    public static let noTransparency = Color("Separator/NoTransparency", bundle: .module)
+    public static let thinBorder = Color("Separator/ThinBorder", bundle: .module)
+  }
 }

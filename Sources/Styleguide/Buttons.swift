@@ -72,7 +72,7 @@ public struct EnterButton: View {
         }
         Spacer()
       }
-      .frame(height: 56)
+      .frame(height: 44)
     }
   }
 }
