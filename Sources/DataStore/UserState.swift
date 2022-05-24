@@ -27,4 +27,15 @@ public final class UserState: ObservableObject {
       self.error.send(loadingError)
     }
   }
+
+  public func signUp(email: String, password: String) async {
+    do {
+      try await authenticator.signUp(email: email, password: password)
+    } catch let loadingError as LoadingError {
+      self.error.send(loadingError)
+    } catch {
+      let loadingError = LoadingError(errorDescription: error.localizedDescription)
+      self.error.send(loadingError)
+    }
+  }
 }
