@@ -1,57 +1,6 @@
-import FirebaseAuth
+import CryptoKit
 import SharedModels
-
-public struct FirebaseAuthError {
-  public let title: String
-  public let recoveryAction: RecoveryAction?
-}
-
-public extension FirebaseAuthError {
-  static let alreadyInUse = FirebaseAuthError(
-    title: "このメールアドレスはすでに使用されています。別のメールアドレスで登録してください。",
-    recoveryAction: nil
-  )
-  static let disabledUser = FirebaseAuthError(
-    title: "このユーザーのアカウントが無効になっています。",
-    recoveryAction: nil
-  )
-  static let disconnectNetwork = FirebaseAuthError(
-    title: "ネットワークエラー",
-    recoveryAction: .reload
-  )
-  static let expiredToken = FirebaseAuthError(
-    title: "トークンの有効期限が切れています。再度ログインしてください。",
-    recoveryAction: .login
-  )
-  static let failedSettingName = FirebaseAuthError(
-    title: "名前の保存に失敗しました。再度名前を登録してください。",
-    recoveryAction: nil
-  )
-  static let failedEmail = FirebaseAuthError(
-    title: "メールアドレスの保存に失敗しました。再度メールアドレスを登録してください。",
-    recoveryAction: nil
-  )
-  static let notFound = FirebaseAuthError(
-    title: "このユーザーは存在しません。他のユーザーでログインしてください。",
-    recoveryAction: nil
-  )
-  static let server = FirebaseAuthError(
-    title: "サーバーでエラーが発生しました。お手数ですが、時間を置いて再度試してみてください。",
-    recoveryAction: nil
-  )
-  static let tooManyRequest = FirebaseAuthError(
-    title: "時間を置いてから再度実施してください。",
-    recoveryAction: nil
-  )
-  static let unknown = FirebaseAuthError(
-    title: "不明なエラー",
-    recoveryAction: nil
-  )
-  static let wrongEmailOrPassword = FirebaseAuthError(
-    title: "メールアドレスまたはパスワードに誤りがあります",
-    recoveryAction: nil
-  )
-}
+@_exported import FirebaseAuth
 
 public enum Authenticator {
   case live
@@ -102,6 +51,17 @@ public enum Authenticator {
     }
   }
 
+  public func user() async -> User? {
+    switch self {
+    case .live:
+      return Auth.auth().currentUser
+    case .mock:
+      return nil
+    case .failed:
+      return nil
+    }
+  }
+
   /// ログイン済みかどうか
   public func isSignIn() async -> Bool {
     switch self {
@@ -114,6 +74,9 @@ public enum Authenticator {
     }
   }
 
+  /// Handle error
+  ///
+  /// seealso: - [Error Type](https://firebase.google.com/docs/reference/swift/firebaseauth/api/reference/Enums/Error-Types)
   private func handleError(error: Error) -> FirebaseAuthError {
     let errorCode = AuthErrorCode(_nsError: error as NSError).code
     switch errorCode {
@@ -129,5 +92,51 @@ public enum Authenticator {
     case .userTokenExpired: return .expiredToken
     default: return .unknown
     }
+  }
+}
+
+private extension Authenticator {
+  func randomNonceString(length: Int = 32) -> String {
+    precondition(length > 0)
+    let charset: [Character] =
+      Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+    var result = ""
+    var remainingLength = length
+
+    while remainingLength > 0 {
+      let randoms: [UInt8] = (0 ..< 16).map { _ in
+        var random: UInt8 = 0
+        let errorCode = SecRandomCopyBytes(kSecRandomDefault, 1, &random)
+        if errorCode != errSecSuccess {
+          fatalError(
+            "Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)"
+          )
+        }
+        return random
+      }
+
+      randoms.forEach { random in
+        if remainingLength == 0 {
+          return
+        }
+
+        if random < charset.count {
+          result.append(charset[Int(random)])
+          remainingLength -= 1
+        }
+      }
+    }
+
+    return result
+  }
+
+  func sha256(_ input: String) -> String {
+    let inputData = Data(input.utf8)
+    let hashedData = SHA256.hash(data: inputData)
+    let hashString = hashedData.compactMap {
+      String(format: "%02x", $0)
+    }.joined()
+
+    return hashString
   }
 }
