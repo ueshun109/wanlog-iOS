@@ -1,0 +1,36 @@
+import Styleguide
+import SwiftUI
+import Core
+
+public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
+  private let router: Router
+
+  public init(router: Router) {
+    self.router = router
+  }
+
+  public var body: some View {
+    TabView {
+      router.view(for: .schedule)
+        .tabItem {
+          Image.calendar
+          Text("ホーム")
+        }
+        .tag(HomeRoute.schedule)
+
+      router.view(for: .dogList)
+        .tabItem {
+          Image.listDash
+          Text("わんちゃん")
+        }
+        .tag(HomeRoute.dogList)
+
+      router.view(for: .history)
+        .tabItem {
+          Image.booksVertical
+          Text("接種履歴")
+        }
+        .tag(HomeRoute.history)
+    }
+  }
+}

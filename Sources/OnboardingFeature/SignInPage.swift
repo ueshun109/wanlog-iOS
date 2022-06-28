@@ -108,7 +108,8 @@ public struct SignInPage<Router: Routing>: View where Router._Route == SignInRou
         .background(Color.Blue.tertiary)
       }
     }
-    .onReceive(userState.error) { error in
+    .onReceive(userState.$error) { error in
+      guard let error = error else { return }
       uiState.loadingState = .failed(error: error)
       uiState.showAlert = true
     }

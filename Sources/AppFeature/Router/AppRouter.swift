@@ -1,6 +1,7 @@
 import OnboardingFeature
 import Core
 import SwiftUI
+import HomeFeature
 
 public class AppRouter: Routing {
   public init() {}
@@ -11,7 +12,7 @@ public class AppRouter: Routing {
     case .authentication:
       SignInPage(router: SignInRouter())
     case .home:
-      Text("TODO: Home")
+      HomeView(router: HomeRouter())
     case .onboarding:
       Text("TODO: Onboarding")
     }
