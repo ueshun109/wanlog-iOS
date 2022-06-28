@@ -1,6 +1,5 @@
 import Foundation
 
-/// ロードエラー
 public struct LoadingError: LocalizedError, Equatable {
   public var errorDescription: String?
   public var failureReason: String?
@@ -20,12 +19,16 @@ public struct LoadingError: LocalizedError, Equatable {
   }
 }
 
-/// エラーが発生した際にユーザーに行ってもらうアクションの一覧
 public enum RecoveryAction {
-  /// ログイン
   case login
-  /// 設定アプリを開く
   case openSettingApp
-  /// 再読み込み
   case reload
+
+  public var displayName: String {
+    switch self {
+    case .login: return "ログインする"
+    case .openSettingApp: return "設定"
+    case .reload: return "再読み込み"
+    }
+  }
 }
