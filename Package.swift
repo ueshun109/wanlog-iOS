@@ -20,8 +20,11 @@ let package = Package(
       name: "AppFeature",
       dependencies: [
         "Core",
+        "HomeFeature",
         "OnboardingFeature",
         "SharedComponents",
+        "SharedModels",
+        "ScheduleFeature",
         "UserNotificationClient",
 //        .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk"),
         .product(name: "FirebaseAuth", package: "Firebase"),
@@ -30,27 +33,33 @@ let package = Package(
       ]
     ),
     .testTarget(name: "AppFeatureTests", dependencies: ["AppFeature"]),
-    .target(name: "Core"),
     .target(
-      name: "DataSource",
+      name: "ScheduleFeature",
       dependencies: [
-        "FirebaseClient",
-        "SharedModels",
+        "DataStore",
       ]
     ),
+    .target(name: "Core"),
     .target(
       name: "DataStore",
       dependencies: [
-        "DataSource",
         "FirebaseClient",
-        "SharedModels",
       ]
     ),
     .target(
       name: "FirebaseClient",
       dependencies: [
+        "Core",
         "SharedModels",
         .product(name: "FirebaseAuth", package: "Firebase"),
+      ]
+    ),
+    .target(
+      name: "HomeFeature",
+      dependencies: [
+        "Core",
+        "SharedModels",
+        "Styleguide",
       ]
     ),
     .target(
@@ -66,10 +75,19 @@ let package = Package(
     ),
     .target(
       name: "SharedComponents",
-      dependencies: ["Styleguide"],
+      dependencies: [
+        "SharedModels",
+        "Styleguide",
+      ],
       resources: [.process("Resources/"),]
     ),
-    .target(name: "SharedModels"),
+    .target(
+      name: "SharedModels",
+      dependencies: [
+        .product(name: "FirebaseFirestore", package: "Firebase"),
+        .product(name: "FirebaseFirestoreSwift", package: "Firebase"),
+      ]
+    ),
     .target(
       name: "Styleguide",
       resources: [.process("Resources/"),]
