@@ -9,6 +9,7 @@ let package = Package(
   platforms: [.iOS(.v15)],
   products: [
     .library(name: "AppFeature", targets: ["AppFeature"]),
+    .library(name: "ScheduleFeature", targets: ["ScheduleFeature"]),
     .library(name: "Styleguide", targets: ["Styleguide"]),
     .library(name: "SharedComponents", targets: ["SharedComponents"]),
   ],
@@ -37,6 +38,8 @@ let package = Package(
       name: "ScheduleFeature",
       dependencies: [
         "DataStore",
+        "SharedComponents",
+        "Styleguide",
       ]
     ),
     .target(name: "Core"),
@@ -76,7 +79,7 @@ let package = Package(
     .target(
       name: "SharedComponents",
       dependencies: [
-        "SharedModels",
+        "FirebaseClient",
         "Styleguide",
       ],
       resources: [.process("Resources/"),]
@@ -84,6 +87,7 @@ let package = Package(
     .target(
       name: "SharedModels",
       dependencies: [
+        "Core",
         .product(name: "FirebaseFirestore", package: "Firebase"),
         .product(name: "FirebaseFirestoreSwift", package: "Firebase"),
       ]
