@@ -4,9 +4,9 @@ import FirebaseFirestoreSwift
 
 public struct Dog: Identifiable, Codable {
   @DocumentID public var id: String?
-  public let name: String
-  public let birthDate: Timestamp
-  public let biologicalSex: BiologicalSex
+  public var name: String
+  public var birthDate: Timestamp
+  public var biologicalSex: BiologicalSex
 
   public init(
     id: String? = nil,
