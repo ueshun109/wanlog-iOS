@@ -3,7 +3,35 @@ import SharedModels
 @_exported import FirebaseFirestore
 @_exported import FirebaseFirestoreSwift
 
+public extension FirebaseFirestore.Query {
+  static func schedules(uid: String) -> FirebaseFirestore.Query {
+    let db = Firestore.firestore()
+    return db.collectionGroup("schedules")
+      .whereField("ownerId", isEqualTo: uid)
+      .whereField("complete", isEqualTo: false)
+      .order(by: "date", descending: false)
+  }
+}
+
 public extension FirebaseFirestore.Firestore {
+  func get<T>(query: Query, type: T.Type) async throws -> [T]? where T: Decodable {
+    do {
+      let querySnapshot = try await query.getDocuments()
+      let response: [T]? = try querySnapshot.documents.compactMap { queryDocumentSnapshot in
+        return try queryDocumentSnapshot.data(as: type)
+      }
+      logger.info(message: "Succeeded in getting: \(String(describing: response))")
+      return response
+    } catch {
+      logger.error(message: error)
+      if let loadingError = handleError(error: error)?.toLoadingError {
+        throw loadingError
+      } else {
+        throw error
+      }
+    }
+  }
+
   func get<T>(_ reference: CollectionReference, type: T.Type) async throws -> [T]? where T: Decodable {
     do {
       let querySnapshot = try await reference.getDocuments()
