@@ -15,12 +15,10 @@ public struct AppView<Router: Routing>: View where Router._Route == AppRoute {
 
   public var body: some View {
     ZStack {
-      NavigationView {
-        if userState.isSignIn {
-          router.view(for: .home)
-        } else {
-          router.view(for: .authentication)
-        }
+      if userState.isSignIn {
+        router.view(for: .home)
+      } else {
+        router.view(for: .authentication)
       }
     }
     .environmentObject(userState)

@@ -11,12 +11,15 @@ public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
 
   public var body: some View {
     TabView {
-      router.view(for: .schedule)
-        .tabItem {
-          Image.calendar
-          Text("ホーム")
-        }
-        .tag(HomeRoute.schedule)
+      NavigationView {
+        router.view(for: .schedule)
+          .navigationTitle(Text("予定"))
+      }
+      .tabItem {
+        Image.calendar
+        Text("ホーム")
+      }
+      .tag(HomeRoute.schedule)
 
       router.view(for: .dogList)
         .tabItem {

@@ -10,7 +10,10 @@ public class AppRouter: Routing {
   public func view(for route: AppRoute) -> some View {
     switch route {
     case .authentication:
-      SignInPage(router: SignInRouter())
+      NavigationView {
+        SignInPage(router: SignInRouter())
+          .navigationTitle(Text("ログイン"))
+      }
     case .home:
       HomeView(router: HomeRouter())
     case .onboarding:
