@@ -11,7 +11,7 @@ public struct SignInPage<Router: Routing>: View where Router._Route == SignInRou
   private struct UIState {
     var email = ""
     var password = ""
-    var loadingState: LoadingState = .idle
+//    var loadingState: LoadingState = .idle
     var showAlert = false
     var showModal = false
     var pushTransitions = false
@@ -110,7 +110,7 @@ public struct SignInPage<Router: Routing>: View where Router._Route == SignInRou
     }
     .onReceive(userState.$error) { error in
       guard let error = error else { return }
-      uiState.loadingState = .failed(error: error)
+//      uiState.loadingState = .failed(error: error)
       uiState.showAlert = true
     }
     .navigate(
@@ -120,7 +120,7 @@ public struct SignInPage<Router: Routing>: View where Router._Route == SignInRou
       isPresented: $uiState.showModal,
       onDismiss: nil
     )
-    .loading($uiState.loadingState, showAlert: $uiState.showAlert)
+//    .loading($uiState.loadingState, showAlert: $uiState.showAlert)
     .navigationTitle(Strings.signIn.localized)
     .ignoresSafeArea(.all, edges: .bottom)
   }

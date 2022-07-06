@@ -5,8 +5,6 @@ import Styleguide
 import SwiftUI
 
 public struct SchedulePage: View {
-  @StateObject private var userState: UserState = .init(authenticator: .live)
-  @StateObject private var state: DogState = .init(authenticator: .live)
   private let db = Firestore.firestore()
   private let authenticator: Authenticator = .live
   @State private var uid: String?
