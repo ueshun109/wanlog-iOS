@@ -14,6 +14,9 @@ public final class AppDelegate: NSObject, UIApplicationDelegate {
   ) -> Bool {
     // Firebase initialize.
     FirebaseApp.configure()
+    let setting = FirestoreSettings()
+    setting.isPersistenceEnabled = false
+    Firestore.firestore().settings = setting
 
     userNotification.delegate
       .sink { _ in
