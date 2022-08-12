@@ -73,7 +73,6 @@ let package = Package(
         "FirebaseClient",
         "SharedComponents",
         "Styleguide",
-        "SwiftUIHelper",
       ]
     ),
     .target(
@@ -96,7 +95,6 @@ let package = Package(
       name: "Styleguide",
       resources: [.process("Resources/"),]
     ),
-    .target(name: "SwiftUIHelper"),
     .target(name: "UserNotificationClient"),
   ]
 )
