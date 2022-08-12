@@ -7,28 +7,33 @@ public struct Schedule: Codable, Equatable, Identifiable {
   public var content: String
   public var complete: Bool
   public var ownerId: String
+  public var dogId: String
 
   public init(
     id: String? = nil,
     date: Timestamp,
     content: String,
     complete: Bool,
-    ownerId: String
+    ownerId: String,
+    dogId: String
   ) {
     self.id = id
     self.date = date
     self.content = content
     self.complete = complete
     self.ownerId = ownerId
+    self.dogId = dogId
   }
 
   public static let skeleton: [Schedule] =
-  (0...4).map { _ in
+  (0...2).map { i in
       .init(
+        id: "\(i)",
         date: .init(date: Date()),
         content: String(repeating: " ", count: 10),
         complete: false,
-        ownerId: ""
+        ownerId: "",
+        dogId: ""
       )
   }
 }

@@ -7,37 +7,47 @@ import SwiftUI
 public struct SchedulePage: View {
   private let db = Firestore.firestore()
   private let authenticator: Authenticator = .live
+
   @State private var uid: String?
   @State private var query: Query?
-
-  @State private var schedules: [Schedule] = Schedule.skeleton
+  @StateObject private var completeState: CompleteState = .init()
 
   public init() {}
 
+  private func status(of schedule: Schedule) -> Bool {
+    guard let id = schedule.id else { return schedule.complete }
+    return completeState.status(of: id) ?? schedule.complete
+  }
+
   public var body: some View {
     WithFIRQuery(
-      skeleton: schedules,
+      skeleton: Schedule.skeleton,
       query: query
     ) { data in
+      // TODO: データが空の場合は、それ用のViewを表示すること
       List {
-        ForEach(self.schedules) { schedule in
-          ScheduleItem(schedule: schedule) { new in
-            guard let index = self.schedules.firstIndex(of: schedule) else { return }
-            withAnimation {
-              schedules[index] = new
+        ForEach(data) { schedule in
+          ScheduleItem(
+            schedule: schedule,
+            complete: status(of: schedule)
+          ) { new in
+            if let id = schedule.id {
+              withAnimation {
+                completeState.update(id, schedule: new)
+              }
             }
           }
         }
       }
       .toolbar {
         Button {
+          Task {
+            await completeState.save()
+          }
         } label: {
           Text("完了")
         }
-        .disabled(!contains(schedules))
-      }
-      .onAppear {
-        self.schedules = data
+        .disabled(completeState.completes.isEmpty)
       }
     } onFailure: { error in
       Text("error")
@@ -52,12 +62,23 @@ public struct SchedulePage: View {
 struct ScheduleItem: View {
   var schedule: Schedule
   var onChange: (Schedule) -> Void
+  private let complete: Bool
+
+  init(
+    schedule: Schedule,
+    complete: Bool,
+    onChange: @escaping (Schedule) -> Void
+  ) {
+    self.schedule = schedule
+    self.complete = complete
+    self.onChange = onChange
+  }
 
   var body: some View {
     HStack {
       VStack(alignment: .leading, spacing: 12) {
         HStack(spacing: Padding.xSmall) {
-          CheckBox(checked: schedule.complete) { status in
+          CheckBox(checked: complete) { status in
             var new = schedule
             new.complete = status
             onChange(new)

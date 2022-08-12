@@ -1,3 +1,4 @@
+import Core
 import FirebaseClient
 import SharedModels
 import SwiftUI
@@ -39,22 +40,21 @@ public struct WithFIRQuery<T, Success: View, Failure: View>: View where T: Decod
               .transition(.opacity)
           }
         }
+        .animation(.default, value: loadingState)
         .task {
           let db = Firestore.firestore()
           do {
-            guard let response = try await db.get(query: query, type: T.self) else { return }
-            withAnimation {
-              self.loadingState = .loaded(data: response)
+            for try await data in db.listen(query, type: T.self) {
+              logger.debug(message: data)
+              self.loadingState = .loaded(data: data)
             }
           } catch let loadingError as LoadingError {
-            withAnimation {
-              self.loadingState = .failed(error: loadingError)
-            }
+            logger.error(message: loadingError)
+            self.loadingState = .failed(error: loadingError)
           } catch {
+            logger.error(message: error)
             let loadingError = LoadingError(errorDescription: error.localizedDescription)
-            withAnimation {
-              self.loadingState = .failed(error: loadingError)
-            }
+            self.loadingState = .failed(error: loadingError)
           }
         }
       }
