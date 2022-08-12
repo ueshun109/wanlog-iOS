@@ -14,6 +14,21 @@ public extension FirebaseFirestore.Query {
 }
 
 public extension FirebaseFirestore.Firestore {
+  func schedule(
+    uid: String,
+    dogId: String,
+    scheduleId: String
+  ) -> DocumentReference {
+    collection("owners")
+      .document(uid)
+      .collection("dogs")
+      .document(dogId)
+      .collection("schedules")
+      .document(scheduleId)
+  }
+}
+
+public extension FirebaseFirestore.Firestore {
   func get<T>(query: Query, type: T.Type) async throws -> [T]? where T: Decodable {
     do {
       let querySnapshot = try await query.getDocuments()
@@ -66,6 +81,27 @@ public extension FirebaseFirestore.Firestore {
     }
   }
 
+  func listen<T>(_ reference: Query, type: T.Type) -> AsyncThrowingStream<[T], Error> where T: Decodable {
+    AsyncThrowingStream { continuation in
+      let listener = reference.addSnapshotListener { querySnapshot, error in
+        if let error = error {
+          continuation.finish(throwing: error); return
+        }
+        do {
+          let response: [T] = try querySnapshot?.documents.compactMap { queryDocumentSnapshot in
+            return try queryDocumentSnapshot.data(as: type)
+          } ?? []
+          continuation.yield(response)
+        } catch {
+          continuation.finish(throwing: error)
+        }
+      }
+      continuation.onTermination = { @Sendable _ in
+        listener.remove()
+      }
+    }
+  }
+
   func set<T>(_ data: T, reference: CollectionReference) async throws where T: Encodable {
     try await withCheckedThrowingContinuation { [weak self] (continuation: CheckedContinuation<Void, Error>) in
       do {
@@ -89,6 +125,17 @@ public extension FirebaseFirestore.Firestore {
         }
       }
     }
+  }
+
+  func updates<T>(_ targets: [(data: T, reference: DocumentReference)]) async throws where T: Encodable {
+    let batch = batch()
+    let encoder = Firestore.Encoder()
+    for target in targets {
+      let fields = try encoder.encode(target.data)
+      print(fields)
+      batch.updateData(fields, forDocument: target.reference)
+    }
+    try await batch.commit()
   }
 
   /// Handle error
