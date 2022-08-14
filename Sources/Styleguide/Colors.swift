@@ -1,6 +1,11 @@
 import SwiftUI
 
 public extension Color {
+  struct Background {
+    public static let primary = Color("Background/Primary", bundle: .module)
+    public static let secondary = Color("Background/Secondary", bundle: .module)
+  }
+
   struct Blue {
     public static let primary = Color("Blue/Primary", bundle: .module)
     public static let secondary = Color("Blue/Secondary", bundle: .module)
