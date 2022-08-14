@@ -131,6 +131,23 @@ public struct EnterButtonStyleThirdly: ButtonStyle {
   }
 }
 
+public struct SmallButtonStyle: ButtonStyle {
+  public init() {}
+
+  public func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .font(.subheadline)
+      .foregroundColor(.white)
+      .padding(.vertical, Padding.xSmall)
+      .padding(.horizontal, Padding.medium)
+      .background(
+        RoundedRectangle(cornerRadius: 24, style: .continuous)
+          .fill(.black)
+      )
+      .opacity(configuration.isPressed ? 0.9 : 1)
+  }
+}
+
 // MARK: - CircleButton
 
 public struct CircleButton: View {

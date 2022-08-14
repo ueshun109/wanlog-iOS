@@ -10,7 +10,7 @@ public class HomeRouter: Routing {
   public func view(for route: HomeRoute) -> some View {
     switch route {
     case .schedule:
-      SchedulePage()
+      SchedulePage(router: ScheduleRouter())
     case .dogList:
       Text("DogList")
     case .history:
@@ -20,5 +20,14 @@ public class HomeRouter: Routing {
 
   public func route(from deeplink: URL) -> HomeRoute? {
     nil
+  }
+}
+
+struct ScheduleRouter: Routing {
+  func view(for route: ScheduleRoute) -> some View {
+    switch route {
+    case .create:
+      CreateSchedulePage()
+    }
   }
 }

@@ -6,7 +6,6 @@ public extension Image {
   static let calendar = Self(systemName: "calendar")
   static let clock = Self(systemName: "clock")
   static let clockArrowCirclePath = Self(systemName: "clock.arrow.2.circlepath")
-  static let calendar = Self(systemName: "calendar")
   static let checkmark = Self(systemName: "checkmark")
   static let checkmarkCircle = Self(systemName: "checkmark.circle")
   static let checkmarkCircleFill = Self(systemName: "checkmark.circle.fill")

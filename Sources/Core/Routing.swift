@@ -13,8 +13,4 @@ public protocol Routing {
   /// - Parameter with : 遷移先が列挙されたenumの値
   /// - Returns: 遷移先の`View`インスタンス
   @ViewBuilder func view(for route: _Route) -> Self.View
-
-  /// ディープリンクから次の遷移先を表す`Route`インスタンスを返す
-  /// - Returns: 次の遷移先の`Route`
-  func route(from deeplink: URL) -> _Route?
 }
