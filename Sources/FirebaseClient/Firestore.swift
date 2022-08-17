@@ -26,6 +26,20 @@ public extension FirebaseFirestore.Firestore {
       .collection("schedules")
       .document(scheduleId)
   }
+
+  func dogs(uid: String) -> CollectionReference {
+    collection("owners")
+      .document(uid)
+      .collection("dogs")
+  }
+
+  func schedules(uid: String, dogId: String) -> CollectionReference {
+    collection("owners")
+      .document(uid)
+      .collection("dogs")
+      .document(dogId)
+      .collection("schedules")
+  }
 }
 
 public extension FirebaseFirestore.Firestore {

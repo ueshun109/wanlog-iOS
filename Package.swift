@@ -38,6 +38,7 @@ let package = Package(
       name: "ScheduleFeature",
       dependencies: [
         "DataStore",
+        "FirebaseClient",
         "SharedComponents",
         "Styleguide",
       ]
@@ -79,6 +80,7 @@ let package = Package(
       name: "SharedComponents",
       dependencies: [
         "FirebaseClient",
+        "SharedModels",
         "Styleguide",
       ],
       resources: [.process("Resources/"),]

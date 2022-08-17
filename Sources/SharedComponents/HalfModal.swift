@@ -64,7 +64,7 @@ struct HalfModalSheet<Sheet: View>: UIViewControllerRepresentable {
       self.onClose = onClose
     }
 
-    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+    func presentationControllerWillDismiss(_ presentationController: UIPresentationController) {
       parent.isShow = false
     }
   }

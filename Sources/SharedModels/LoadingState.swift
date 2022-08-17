@@ -4,3 +4,10 @@ public enum LoadingState<T: Equatable>: Equatable {
   case loaded(data: T)
   case failed(error: LoadingError)
 }
+
+public enum Loading {
+  case idle
+  case loading
+  case loaded
+  case failed(error: LoadingError)
+}

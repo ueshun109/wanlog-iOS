@@ -2,7 +2,7 @@ import Foundation
 import FirebaseFirestore
 import FirebaseFirestoreSwift
 
-public struct Dog: Identifiable, Codable {
+public struct Dog: Identifiable, Codable, Hashable {
   @DocumentID public var id: String?
   public var name: String
   public var birthDate: Timestamp
