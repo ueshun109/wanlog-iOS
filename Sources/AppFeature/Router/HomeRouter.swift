@@ -24,10 +24,13 @@ public class HomeRouter: Routing {
 }
 
 struct ScheduleRouter: Routing {
+  @ViewBuilder
   func view(for route: ScheduleRoute) -> some View {
     switch route {
     case .create:
       CreateSchedulePage()
+    case .detail(let schedule):
+      UpdateSchedulePage(schedule: schedule)
     }
   }
 }

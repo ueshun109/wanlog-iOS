@@ -6,6 +6,7 @@ public struct Schedule: Codable, Equatable, Identifiable {
   public var date: Timestamp
   public var content: String
   public var complete: Bool
+  public var memo: String?
   public var notificationDate: [Timestamp]
   public var ownerId: String
   public var dogId: String
@@ -15,6 +16,7 @@ public struct Schedule: Codable, Equatable, Identifiable {
     date: Timestamp,
     content: String,
     complete: Bool,
+    memo: String? = nil,
     notificationDate: [Timestamp] = [],
     ownerId: String,
     dogId: String
@@ -23,6 +25,7 @@ public struct Schedule: Codable, Equatable, Identifiable {
     self.date = date
     self.content = content
     self.complete = complete
+    self.memo = memo
     self.notificationDate = notificationDate
     self.ownerId = ownerId
     self.dogId = dogId

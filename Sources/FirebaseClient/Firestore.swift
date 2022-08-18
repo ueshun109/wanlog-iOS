@@ -27,6 +27,16 @@ public extension FirebaseFirestore.Firestore {
       .document(scheduleId)
   }
 
+  func dog(
+    uid: String,
+    dogId: String
+  ) -> DocumentReference {
+    collection("owners")
+      .document(uid)
+      .collection("dogs")
+      .document(dogId)
+  }
+
   func dogs(uid: String) -> CollectionReference {
     collection("owners")
       .document(uid)
@@ -141,12 +151,35 @@ public extension FirebaseFirestore.Firestore {
     }
   }
 
+  func set<T>(data: T, reference: DocumentReference) async throws where T: Encodable {
+    try await withCheckedThrowingContinuation { [weak self] (continuation: CheckedContinuation<Void, Error>) in
+      do {
+        try reference.setData(from: data) { error in
+          if let error = error,
+             let loadingError = self?.handleError(error: error)?.toLoadingError {
+            logger.error(message: error)
+            continuation.resume(throwing: loadingError)
+            return
+          }
+          logger.info(message: "Succeeded in setting")
+          continuation.resume()
+        }
+      } catch {
+        logger.error(message: error)
+        if let loadingError = self?.handleError(error: error)?.toLoadingError {
+          continuation.resume(throwing: loadingError)
+        } else {
+          continuation.resume(throwing: error)
+        }
+      }
+    }
+  }
+
   func updates<T>(_ targets: [(data: T, reference: DocumentReference)]) async throws where T: Encodable {
     let batch = batch()
     let encoder = Firestore.Encoder()
     for target in targets {
       let fields = try encoder.encode(target.data)
-      print(fields)
       batch.updateData(fields, forDocument: target.reference)
     }
     try await batch.commit()

@@ -13,10 +13,13 @@ public struct SchedulePage<Router: Routing>: View where Router._Route == Schedul
   @State private var uid: String?
   @State private var query: Query?
   @State private var showModal: Bool = false
+  @State private var pushTransition: Bool = false
   @State private var route: ScheduleRoute? = nil {
     didSet {
       switch route {
       case .create:
+        showModal = true
+      case .detail:
         showModal = true
       case .none:
         break
@@ -51,6 +54,13 @@ public struct SchedulePage<Router: Routing>: View where Router._Route == Schedul
                 withAnimation {
                   completeState.update(id, schedule: new)
                 }
+              }
+            }
+            .swipeActions(edge: .trailing) {
+              Button {
+                route = .detail(schedule)
+              } label: {
+                Text("詳細")
               }
             }
           }

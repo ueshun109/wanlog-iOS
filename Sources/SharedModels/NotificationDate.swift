@@ -6,6 +6,20 @@ public enum NotificationDate {
   case tenMinutesAgo
   case oneHourAgo
 
+  public init?(lhs: Date, rhs: Date) {
+    let interval = lhs.timeIntervalSince(rhs)
+    switch interval {
+    case 0:
+      self = .atStart
+    case 60 * 10:
+      self = .tenMinutesAgo
+    case 60 * 60:
+      self = .oneHourAgo
+    default:
+      return nil
+    }
+  }
+
   public var title: String {
     switch self {
     case .atStart:
