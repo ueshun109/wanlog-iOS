@@ -21,6 +21,7 @@ let package = Package(
       name: "AppFeature",
       dependencies: [
         "Core",
+        "DogFeature",
         "HomeFeature",
         "OnboardingFeature",
         "SharedComponents",
@@ -38,9 +39,7 @@ let package = Package(
       name: "ScheduleFeature",
       dependencies: [
         "DataStore",
-        "FirebaseClient",
         "SharedComponents",
-        "Styleguide",
       ]
     ),
     .target(name: "Core"),
@@ -48,6 +47,12 @@ let package = Package(
       name: "DataStore",
       dependencies: [
         "FirebaseClient",
+      ]
+    ),
+    .target(
+      name: "DogFeature",
+      dependencies: [
+        "SharedComponents",
       ]
     ),
     .target(

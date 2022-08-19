@@ -1,4 +1,5 @@
 import Core
+import DogFeature
 import HomeFeature
 import ScheduleFeature
 import SwiftUI
@@ -12,7 +13,7 @@ public class HomeRouter: Routing {
     case .schedule:
       SchedulePage(router: ScheduleRouter())
     case .dogList:
-      Text("DogList")
+      DogsListPage(router: DogRouter())
     case .history:
       Text("history")
     }

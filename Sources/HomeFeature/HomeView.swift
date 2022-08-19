@@ -21,12 +21,15 @@ public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
       }
       .tag(HomeRoute.schedule)
 
-      router.view(for: .dogList)
-        .tabItem {
-          Image.listDash
-          Text("わんちゃん")
-        }
-        .tag(HomeRoute.dogList)
+      NavigationView {
+        router.view(for: .dogList)
+          .navigationTitle(Text("ワンちゃん一覧"))
+      }
+      .tabItem {
+        Image.listDash
+        Text("わんちゃん")
+      }
+      .tag(HomeRoute.dogList)
 
       router.view(for: .history)
         .tabItem {
