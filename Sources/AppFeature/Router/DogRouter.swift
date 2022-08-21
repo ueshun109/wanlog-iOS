@@ -8,6 +8,8 @@ struct DogRouter: Routing {
     switch route {
     case .create:
       CreateDogPage()
+    case .detail(let dog):
+      DogDetailPage(dog: dog)
     }
   }
 }
