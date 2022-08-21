@@ -52,6 +52,7 @@ let package = Package(
     .target(
       name: "DogFeature",
       dependencies: [
+        "FirebaseClient",
         "SharedComponents",
       ]
     ),
@@ -61,6 +62,7 @@ let package = Package(
         "Core",
         "SharedModels",
         .product(name: "FirebaseAuth", package: "Firebase"),
+        .product(name: "FirebaseStorage", package: "Firebase"),
       ]
     ),
     .target(
