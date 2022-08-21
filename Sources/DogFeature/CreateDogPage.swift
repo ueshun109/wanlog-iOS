@@ -1,3 +1,4 @@
+import FirebaseClient
 import Styleguide
 import SwiftUI
 import SharedComponents
@@ -7,13 +8,18 @@ public struct CreateDogPage: View {
   private struct UiState {
     var biologicalSex: BiologicalSex = .male
     var bitrhDate: Date = .init()
+    var loading: Loading = .idle
     var name: String = ""
+    var showAlert: Bool = false
   }
 
   @Environment(\.dismiss) var dismiss
   @State private var image: UIImage?
   @State private var showCamera: Bool = false
   @State private var uiState = UiState()
+
+  private let authenticator: Authenticator = .live
+  private let db = Firestore.firestore()
 
   public init() {}
 
@@ -40,6 +46,7 @@ public struct CreateDogPage: View {
       .sheet(isPresented: $showCamera) {
         CameraView(image: $image)
       }
+      .loading($uiState.loading, showAlert: $uiState.showAlert)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
           Button {
@@ -51,9 +58,11 @@ public struct CreateDogPage: View {
 
         ToolbarItem(placement: .navigationBarTrailing) {
           Button {
+            save()
           } label: {
             Text("保存")
           }
+          .disabled(uiState.name.isEmpty)
         }
       }
     }
@@ -172,6 +181,48 @@ public struct CreateDogPage: View {
         )
       }
       .padding(Padding.small)
+    }
+  }
+}
+
+private extension CreateDogPage {
+  func dog() -> Dog {
+    Dog(
+      name: uiState.name,
+      birthDate: .init(date: uiState.bitrhDate),
+      biologicalSex: uiState.biologicalSex
+    )
+  }
+
+  func save() {
+    Task {
+      guard let uid = await authenticator.user()?.uid else { return }
+      uiState.loading = .loading
+      let ref = db.dogs(uid: uid)
+      var newDog = dog()
+      do {
+        let docRef = try await db.set(newDog, reference: ref)
+        let dogId = docRef.documentID
+        let storageRef = Storage.storage().dogRef(uid: uid, dogId: dogId)
+        guard let image = image else {
+          uiState.loading = .loaded
+          dismiss()
+          return
+        }
+        let oneMB = 1024 * 1024
+        if image.exceed(oneMB) {
+          let data = image.resize(to: oneMB)
+          try await storageRef.upload(data)
+        } else if let data = image.pngData() {
+          try await storageRef.upload(data)
+        }
+        newDog.iconRef = storageRef.fullPath
+        try await db.set(data: newDog, reference: docRef)
+        uiState.loading = .loaded
+        dismiss()
+      } catch let loadingError as LoadingError {
+        uiState.loading = .failed(error: loadingError)
+      }
     }
   }
 }

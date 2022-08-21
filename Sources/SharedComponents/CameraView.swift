@@ -1,31 +1,5 @@
-import SwiftUI
 import AVFoundation
-
-//public struct CameraView: UIViewRepresentable {
-//
-//}
-
-//class CameraView: UIView {
-//  override init(frame: CGRect) {
-//    super.init(frame: frame)
-//
-//    let session = AVCaptureSession()
-//    guard let device: AVCaptureDevice = .default(for: .video) else { return }
-//    let input: AVCaptureDeviceInput = try! .init(device: device)
-//    let output: AVCapturePhotoOutput = .init()
-//
-//    session.addInput(input)
-//    session.addOutput(output)
-//    session.startRunning()
-//
-//    let videoLayer = AVCaptureVideoPreviewLayer(session: session)
-//    layer.addSublayer(videoLayer)
-//  }
-//
-//  required init?(coder: NSCoder) {
-//    fatalError("init(coder:) has not been implemented")
-//  }
-//}
+import SwiftUI
 
 public struct CameraView: UIViewControllerRepresentable {
   @Binding private var image: UIImage?
@@ -39,6 +13,7 @@ public struct CameraView: UIViewControllerRepresentable {
     let imagePicker = UIImagePickerController()
     imagePicker.delegate = context.coordinator
     imagePicker.sourceType = .camera
+    imagePicker.allowsEditing = true
     return imagePicker
   }
 

@@ -66,7 +66,7 @@ public extension FirebaseFirestore.Firestore {
       if let loadingError = handleError(error: error)?.toLoadingError {
         throw loadingError
       } else {
-        throw error
+        throw LoadingError(errorDescription: error.localizedDescription)
       }
     }
   }
@@ -84,7 +84,7 @@ public extension FirebaseFirestore.Firestore {
       if let loadingError = handleError(error: error)?.toLoadingError {
         throw loadingError
       } else {
-        throw error
+        throw LoadingError(errorDescription: error.localizedDescription)
       }
     }
   }
@@ -100,7 +100,7 @@ public extension FirebaseFirestore.Firestore {
       if let loadingError = handleError(error: error)?.toLoadingError {
         throw loadingError
       } else {
-        throw error
+        throw LoadingError(errorDescription: error.localizedDescription)
       }
     }
   }
@@ -126,10 +126,11 @@ public extension FirebaseFirestore.Firestore {
     }
   }
 
-  func set<T>(_ data: T, reference: CollectionReference) async throws where T: Encodable {
-    try await withCheckedThrowingContinuation { [weak self] (continuation: CheckedContinuation<Void, Error>) in
+  func set<T>(_ data: T, reference: CollectionReference) async throws -> DocumentReference where T: Encodable {
+    try await withCheckedThrowingContinuation { [weak self] (continuation: CheckedContinuation<DocumentReference, Error>) in
       do {
-        let docRef = try reference.addDocument(from: data) { error in
+        var docRef: DocumentReference?
+        docRef = try reference.addDocument(from: data) { error in
           if let error = error,
              let loadingError = self?.handleError(error: error)?.toLoadingError {
             logger.error(message: error)
@@ -137,15 +138,16 @@ public extension FirebaseFirestore.Firestore {
             return
           }
           logger.info(message: "Succeeded in adding")
-          continuation.resume()
+          continuation.resume(returning: docRef!)
         }
-        logger.info(message: "docRef: \(docRef)")
+        logger.info(message: "docRef: \(String(describing: docRef))")
       } catch {
         logger.error(message: error)
         if let loadingError = self?.handleError(error: error)?.toLoadingError {
           continuation.resume(throwing: loadingError)
         } else {
-          continuation.resume(throwing: error)
+          let loadingError = LoadingError(errorDescription: error.localizedDescription)
+          continuation.resume(throwing: loadingError)
         }
       }
     }
@@ -169,7 +171,8 @@ public extension FirebaseFirestore.Firestore {
         if let loadingError = self?.handleError(error: error)?.toLoadingError {
           continuation.resume(throwing: loadingError)
         } else {
-          continuation.resume(throwing: error)
+          let loadingError = LoadingError(errorDescription: error.localizedDescription)
+          continuation.resume(throwing: loadingError)
         }
       }
     }
