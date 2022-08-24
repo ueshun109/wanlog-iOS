@@ -19,6 +19,26 @@ public extension Storage {
 }
 
 public extension StorageReference {
+  func get() async throws -> Data {
+    try await withCheckedThrowingContinuation { [weak self] (continuation: CheckedContinuation<Data, Error>) in
+      self?.getData(maxSize: 1024 * 1024) { data, error in
+        if let error = error,
+           let loadingError = self?.handleError(error: error).toLoadingError {
+          logger.error(message: error)
+          continuation.resume(throwing: loadingError)
+          return
+        }
+        if let data = data {
+          logger.info(message: "Succeeded in getting")
+          continuation.resume(returning: data)
+        } else {
+          logger.error(message: "unknown error")
+          continuation.resume(throwing: CloudStorageError.unknown.toLoadingError)
+        }
+      }
+    }
+  }
+
   func upload(_ data: Data) async throws {
     try await withCheckedThrowingContinuation { [weak self] (continuation: CheckedContinuation<Void, Error>) in
       putData(data) { metadata, error in

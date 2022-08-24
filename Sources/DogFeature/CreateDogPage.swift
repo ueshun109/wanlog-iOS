@@ -26,7 +26,7 @@ public struct CreateDogPage: View {
   public var body: some View {
     NavigationView {
       ScrollView {
-        VStack {
+        VStack(spacing: Padding.xSmall) {
           HeaderSection(image: image)
             .onTapGesture {
               showCamera.toggle()
@@ -38,7 +38,7 @@ public struct CreateDogPage: View {
 
           BiologicalSexSection(biologicalSex: $uiState.biologicalSex)
         }
-        .padding(Padding.xSmall)
+        .padding(.horizontal, Padding.medium)
       }
       .background(Color.Background.primary)
       .navigationTitle("ワンちゃん迎い入れ")
@@ -65,122 +65,6 @@ public struct CreateDogPage: View {
           .disabled(uiState.name.isEmpty)
         }
       }
-    }
-  }
-
-  private struct HeaderSection: View {
-    let image: UIImage?
-
-    var body: some View {
-      if let image = image {
-        Image(uiImage: image)
-          .resizable()
-          .frame(width: 100, height: 100)
-          .scaledToFit()
-          .clipShape(Circle())
-      } else {
-        Image.person
-          .resizable()
-          .frame(width: 100, height: 100)
-      }
-    }
-  }
-
-  private struct NameSection: View {
-    @Binding var name: String
-
-    var body: some View {
-      VStack(alignment: .leading, spacing: Padding.xSmall) {
-        HStack {
-          Text("名前")
-            .font(.caption)
-            .foregroundColor(Color.Label.secondary)
-
-          Spacer()
-        }
-
-        TextField("名前", text: $name)
-          .padding(Padding.small)
-          .background(Color.Background.secondary)
-          .clipShape(
-            RoundedRectangle(cornerRadius: 8)
-          )
-      }
-      .padding(Padding.small)
-    }
-  }
-
-  private struct BirthDateSection: View {
-    @Binding var birthDate: Date
-    @State var openDatePicker: Bool = false
-
-    var body: some View {
-      VStack(alignment: .leading, spacing: Padding.xSmall) {
-        HStack(spacing: Padding.xxSmall) {
-          Text("誕生日")
-            .font(.caption)
-            .foregroundColor(Color.Label.secondary)
-
-          Spacer()
-        }
-
-        VStack {
-          Button {
-            withAnimation {
-              openDatePicker.toggle()
-            }
-          } label: {
-            HStack {
-              Text(birthDate.formatted(date: .complete, time: .omitted))
-              Spacer()
-            }
-          }
-          .foregroundColor(Color.Label.primary)
-
-          if openDatePicker {
-            DatePicker(
-              selection: $birthDate,
-              displayedComponents: [.date]
-            ) {
-            }
-            .datePickerStyle(.graphical)
-          }
-        }
-        .padding(Padding.small)
-        .background(Color.Background.secondary)
-        .clipShape(
-          RoundedRectangle(cornerRadius: 8)
-        )
-      }
-      .padding(Padding.small)
-    }
-  }
-
-  private struct BiologicalSexSection: View {
-    @Binding var biologicalSex: BiologicalSex
-    
-    var body: some View {
-      VStack(alignment: .leading, spacing: Padding.xSmall) {
-        HStack {
-          Text("性別")
-            .font(.caption)
-            .foregroundColor(Color.Label.secondary)
-
-          Spacer()
-        }
-
-        Picker("性別", selection: $biologicalSex) {
-          Text("オス").tag(BiologicalSex.male)
-          Text("メス").tag(BiologicalSex.female)
-        }
-        .pickerStyle(.segmented)
-        .padding(Padding.small)
-        .background(Color.Background.secondary)
-        .clipShape(
-          RoundedRectangle(cornerRadius: 8)
-        )
-      }
-      .padding(Padding.small)
     }
   }
 }

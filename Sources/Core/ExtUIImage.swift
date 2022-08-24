@@ -23,26 +23,5 @@ public extension UIImage {
       logger.debug(message: imageSize)
     }
     return target.jpegData(compressionQuality: compressQuality)!
-//
-//
-//
-//
-//    var resizedSize: CGSize
-//
-//    if self.size.width < self.size.height {
-//      let aspectScale = self.size.width / self.size.height
-//      logger.debug(message: self.size.width)
-//      logger.debug(message: self.size.height)
-//      resizedSize = CGSize(width: size * aspectScale, height: size)
-//    } else {
-//      let aspectScale = self.size.height / self.size.width
-//      resizedSize = CGSize(width: size, height: size * aspectScale)
-//    }
-//    logger.debug(message: resizedSize)
-//    let data = UIGraphicsImageRenderer(size: resizedSize).pngData { _ in
-//      draw(in: .init(origin: .zero, size: resizedSize))
-//    }
-//    logger.debug(message: Double(data.count) / (1024 * 1024))
-//    return data
   }
 }

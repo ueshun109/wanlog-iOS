@@ -1,3 +1,4 @@
+import Combine
 import Core
 import FirebaseClient
 import SharedModels
@@ -10,7 +11,18 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
     var showModal = false
     var pushTransition = false
   }
-  @State private var route: DogRoute? = nil
+  @State private var route: DogRoute? = nil {
+    didSet {
+      switch route {
+      case .create:
+        uiState.showModal = true
+      case .detail:
+        uiState.pushTransition = true
+      case .none:
+        break
+      }
+    }
+  }
   @State private var query: Query?
   @State private var uiState = UiState()
 
@@ -26,19 +38,11 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
       skeleton: Dog.skelton,
       query: query
     ) { data in
-      DogsSection(dogs: data, route: $route)
-    } onFailure: { error in
-
-    }
-    .navigate(
-      router: router,
-      route: route,
-      isActive: $uiState.pushTransition,
-      isPresented: $uiState.showModal,
-      onDismiss: {
-        route = nil
+      DogsSection(dogs: data) { route in
+        self.route = route
       }
-    )
+    } onFailure: { error in
+    }
     .toolbar {
       ToolbarItem(placement: .navigationBarTrailing) {
         Button {
@@ -48,19 +52,13 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
         }
       }
     }
-    .onChange(of: route) { new in
-      switch new {
-      case .create:
-        uiState.showModal = true
-      case .detail:
-        uiState.pushTransition = true
-      case .none:
-        break
-      }
-    }
-    .onAppear {
-      route = nil
-    }
+    .navigate(
+      router: router,
+      route: route,
+      isActive: $uiState.pushTransition,
+      isPresented: $uiState.showModal,
+      onDismiss: {}
+    )
     .task {
       guard let uid = await authenticator.user()?.uid else { return }
       let db = Firestore.firestore()
@@ -70,7 +68,7 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
 
   private struct DogsSection: View {
     let dogs: [Dog]
-    @Binding var route: DogRoute?
+    let routing: (DogRoute?) -> Void
 
     @ViewBuilder
     var body: some View {
@@ -80,7 +78,7 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
         List {
           ForEach(dogs) { dog in
             Button {
-              route = .detail(dog: dog)
+              routing(.detail(dog: dog))
             } label: {
               DogItem(dog: dog)
             }
@@ -91,10 +89,21 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
   }
 
   private struct DogItem: View {
+    @State var image: UIImage?
+
+    let storage: Storage = .storage()
     let dog: Dog
     var body: some View {
       HStack {
-        Image.person
+        if let image = image {
+          Image(uiImage: image)
+            .resizable()
+            .frame(width: 32, height: 32)
+            .scaledToFit()
+            .clipShape(Circle())
+        } else {
+          Image.person
+        }
 
         VStack(alignment: .leading) {
           Text(dog.name)
@@ -108,6 +117,16 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
         }
 
         Spacer()
+      }
+      .task {
+        if let refString = dog.iconRef {
+          do {
+            let data = try await storage.reference(withPath: refString).get()
+            image = UIImage(data: data)
+          } catch {
+            // TODO: エラーハンドリング
+          }
+        }
       }
     }
   }
