@@ -4,12 +4,19 @@ import SharedModels
 @_exported import FirebaseFirestoreSwift
 
 public extension FirebaseFirestore.Query {
-  static func schedules(uid: String) -> FirebaseFirestore.Query {
+  static func schedules(uid: String, incompletedOnly: Bool = true) -> FirebaseFirestore.Query {
     let db = Firestore.firestore()
-    return db.collectionGroup("schedules")
-      .whereField("ownerId", isEqualTo: uid)
-      .whereField("complete", isEqualTo: false)
-      .order(by: "date", descending: false)
+    if incompletedOnly {
+      return db.collectionGroup("schedules")
+        .whereField("ownerId", isEqualTo: uid)
+        .whereField("complete", isEqualTo: false)
+        .order(by: "date", descending: false)
+    } else {
+      return db.collectionGroup("schedules")
+        .whereField("ownerId", isEqualTo: uid)
+        .order(by: "complete", descending: false)
+        .order(by: "date", descending: false)
+    }
   }
 }
 

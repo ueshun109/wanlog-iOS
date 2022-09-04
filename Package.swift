@@ -69,7 +69,7 @@ let package = Package(
       name: "HomeFeature",
       dependencies: [
         "Core",
-        "SharedModels",
+        "FirebaseClient",
         "Styleguide",
       ]
     ),

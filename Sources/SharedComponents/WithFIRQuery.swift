@@ -1,3 +1,4 @@
+import Combine
 import Core
 import FirebaseClient
 import SharedModels
@@ -40,23 +41,35 @@ public struct WithFIRQuery<T, Success: View, Failure: View>: View where T: Decod
               .transition(.opacity)
           }
         }
-        .animation(.default, value: loadingState)
-        .task {
-          let db = Firestore.firestore()
-          do {
-            for try await data in db.listen(query, type: T.self) {
-              logger.debug(message: data)
-              self.loadingState = .loaded(data: data)
-            }
-          } catch let loadingError as LoadingError {
-            logger.error(message: loadingError)
-            self.loadingState = .failed(error: loadingError)
-          } catch {
-            logger.error(message: error)
-            let loadingError = LoadingError(errorDescription: error.localizedDescription)
-            self.loadingState = .failed(error: loadingError)
+        .onReceive(Just(query)) { new in
+          Task {
+            await update(with: new)
           }
         }
+      }
+    }
+    .animation(.default, value: query)
+  }
+
+  private func update(with query: Query) async {
+    let db = Firestore.firestore()
+    do {
+      for try await data in db.listen(query, type: T.self) {
+        logger.debug(message: data)
+        withAnimation {
+          self.loadingState = .loaded(data: data)
+        }
+      }
+    } catch let loadingError as LoadingError {
+      logger.error(message: loadingError)
+      withAnimation {
+        self.loadingState = .failed(error: loadingError)
+      }
+    } catch {
+      logger.error(message: error)
+      let loadingError = LoadingError(errorDescription: error.localizedDescription)
+      withAnimation {
+        self.loadingState = .failed(error: loadingError)
       }
     }
   }

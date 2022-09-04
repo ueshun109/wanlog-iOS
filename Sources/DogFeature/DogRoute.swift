@@ -1,4 +1,5 @@
 import Core
+import FirebaseFirestore
 import SharedModels
 
 public enum DogRoute: Route, Equatable {
@@ -7,6 +8,5 @@ public enum DogRoute: Route, Equatable {
 }
 
 public enum DogDetailRoute: Route {
-  case schedules
-//  case 
+  case schedules(Query?)
 }

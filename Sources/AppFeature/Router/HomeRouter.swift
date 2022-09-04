@@ -10,8 +10,11 @@ public class HomeRouter: Routing {
   @ViewBuilder
   public func view(for route: HomeRoute) -> some View {
     switch route {
-    case .schedule:
-      SchedulePage(router: ScheduleRouter())
+    case .schedule(let query):
+      SchedulePage(
+        query: query,
+        router: ScheduleRouter()
+      )
     case .dogList:
       DogsListPage(router: DogRouter())
     case .history:

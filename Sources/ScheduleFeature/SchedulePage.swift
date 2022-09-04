@@ -6,29 +6,45 @@ import Styleguide
 import SwiftUI
 
 public struct SchedulePage<Router: Routing>: View where Router._Route == ScheduleRoute {
+  private struct UiState {
+    /// Flag for whether to push transition.
+    var pushTransition: Bool = false
+    /// Firestore query.
+    var query: Query?
+    /// Show only incompleted task if `true`
+    var showOnlyIncompleted = true
+    /// Flag for whether to modal transition.
+    var showModal: Bool = false
+    /// ID of the logged-in user.
+    var uid: String?
+  }
+
   private let db = Firestore.firestore()
   private let authenticator: Authenticator = .live
   private let router: Router
+  private let tmpQuery: Query?
 
-  @State private var uid: String?
-  @State private var query: Query?
-  @State private var showModal: Bool = false
-  @State private var pushTransition: Bool = false
-  @State private var route: ScheduleRoute? = nil {
+  @State private var uiState = UiState()
+  @State private var route: ScheduleRoute? {
     didSet {
       switch route {
       case .create:
-        showModal = true
+        uiState.showModal = true
       case .detail:
-        showModal = true
+        uiState.showModal = true
       case .none:
         break
       }
     }
   }
+
   @StateObject private var completeState: CompleteState = .init()
 
-  public init(router: Router) {
+  public init(
+    query: Query?,
+    router: Router
+  ) {
+    self.tmpQuery = query
     self.router = router
   }
 
@@ -40,7 +56,7 @@ public struct SchedulePage<Router: Routing>: View where Router._Route == Schedul
   public var body: some View {
     WithFIRQuery(
       skeleton: Schedule.skeleton,
-      query: query
+      query: uiState.query
     ) { data in
       // TODO: データが空の場合は、それ用のViewを表示すること
       ZStack {
@@ -51,8 +67,15 @@ public struct SchedulePage<Router: Routing>: View where Router._Route == Schedul
               complete: status(of: schedule)
             ) { new in
               if let id = schedule.id {
-                withAnimation {
-                  completeState.update(id, schedule: new)
+                if schedule.complete && !completeState.contains(id) {
+                  Task {
+                    try? await completeState.toIncomplete(schedule)
+                  }
+                  return
+                } else {
+                  withAnimation {
+                    completeState.update(id, schedule: new)
+                  }
                 }
               }
             }
@@ -81,29 +104,61 @@ public struct SchedulePage<Router: Routing>: View where Router._Route == Schedul
           }
         }
       }
-      .toolbar {
-        HStack {
-          Button {
-            // 作成ページに遷移する
-            route = .create
-          } label: {
-            Image.plusCircle
-          }
-        }
-      }
     } onFailure: { error in
       Text("error")
+    }
+    .toolbar {
+      ToolbarItem(placement: .navigationBarTrailing) {
+        Menu {
+          Button {
+            uiState.showOnlyIncompleted.toggle()
+          } label: {
+            if uiState.showOnlyIncompleted {
+              HStack {
+                Text("完了済みを表示")
+                Spacer()
+                Image.eye
+              }
+            } else {
+              HStack {
+                Text("完了済みを非表示")
+                Spacer()
+                Image.eyeSlash
+              }
+            }
+          }
+        } label: {
+          Image.ellipsisCircle
+        }
+      }
+
+      ToolbarItem(placement: .navigationBarTrailing) {
+        Button {
+          route = .create
+        } label: {
+          Image.plusCircle
+        }
+      }
     }
     .navigate(
       router: router,
       route: route,
       isActive: .constant(false),
-      isPresented: $showModal,
+      isPresented: $uiState.showModal,
       onDismiss: nil
     )
+    .onChange(of: uiState.showOnlyIncompleted) { value in
+      Task {
+        uiState.query = Query.schedules(uid: uiState.uid!, incompletedOnly: value)
+      }
+    }
     .task {
-      self.uid = await authenticator.user()?.uid ?? ""
-      self.query = Query.schedules(uid: uid!)
+      uiState.uid = await authenticator.user()?.uid ?? ""
+    }
+    .onAppear {
+      if uiState.query == nil {
+        uiState.query = tmpQuery
+      }
     }
   }
 }
