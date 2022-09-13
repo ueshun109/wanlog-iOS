@@ -10,7 +10,7 @@ public struct SchedulePage<Router: Routing>: View where Router._Route == Schedul
     /// Flag for whether to push transition.
     var pushTransition: Bool = false
     /// Firestore query.
-    var query: Query?
+    var query: FirebaseFirestore.Query?
     /// Show only incompleted task if `true`
     var showOnlyIncompleted = true
     /// Flag for whether to modal transition.
@@ -19,10 +19,10 @@ public struct SchedulePage<Router: Routing>: View where Router._Route == Schedul
     var uid: String?
   }
 
-  private let db = Firestore.firestore()
   private let authenticator: Authenticator = .live
+  private let db = Firestore.firestore()
   private let router: Router
-  private let tmpQuery: Query?
+  private let scheduleQuery: Query.Schedule?
 
   @State private var uiState = UiState()
   @State private var route: ScheduleRoute? {
@@ -41,10 +41,10 @@ public struct SchedulePage<Router: Routing>: View where Router._Route == Schedul
   @StateObject private var completeState: CompleteState = .init()
 
   public init(
-    query: Query?,
+    scheduleQuery: Query.Schedule?,
     router: Router
   ) {
-    self.tmpQuery = query
+    self.scheduleQuery = scheduleQuery
     self.router = router
   }
 
@@ -117,7 +117,7 @@ public struct SchedulePage<Router: Routing>: View where Router._Route == Schedul
     )
     .onChange(of: uiState.showOnlyIncompleted) { value in
       Task {
-        uiState.query = Query.schedules(uid: uiState.uid!, incompletedOnly: value)
+        uiState.query = scheduleQuery?.query(incompletedOnly: value)
       }
     }
     .task {
@@ -125,7 +125,7 @@ public struct SchedulePage<Router: Routing>: View where Router._Route == Schedul
     }
     .onAppear {
       if uiState.query == nil {
-        uiState.query = tmpQuery
+        uiState.query = scheduleQuery?.query(incompletedOnly: true)
       }
     }
   }

@@ -7,13 +7,16 @@ import SwiftUI
 /// WithFIRQuery is a component that determines the displayed content according to the load status.
 public struct WithFIRQuery<T, Success: View, Failure: View>: View where T: Decodable, T: Equatable {
   @State private var loadingState: LoadingState<[T]>
-  private let query: Query?
+  @State private var firstLoading = false
+  @State private var listenTask: Task<Void, Never>?
+  private let db = Firestore.firestore()
+  private let query: FirebaseFirestore.Query?
   private let onSuccess: ([T]) -> Success
   private let onFailure: (LoadingError) -> Failure
 
   public init(
     skeleton: [T],
-    query: Query?,
+    query: FirebaseFirestore.Query?,
     @ViewBuilder onSuccess: @escaping ([T]) -> Success,
     @ViewBuilder onFailure: @escaping (LoadingError) -> Failure
   ) {
@@ -41,23 +44,31 @@ public struct WithFIRQuery<T, Success: View, Failure: View>: View where T: Decod
               .transition(.opacity)
           }
         }
-        .onReceive(Just(query)) { new in
-          Task {
+        .onChange(of: query) { new in
+          if let listenTask = listenTask {
+            listenTask.cancel()
+          }
+          listenTask = Task {
+            try! await Task.sleep(nanoseconds: 1_000_000_000)
+            print(new)
             await update(with: new)
           }
+        }
+        .onAppear {
+          listenTask = Task { await update(with: query) }
         }
       }
     }
     .animation(.default, value: query)
   }
 
-  private func update(with query: Query) async {
-    let db = Firestore.firestore()
+  private func update(with query: FirebaseFirestore.Query) async {
     do {
       for try await data in db.listen(query, type: T.self) {
         logger.debug(message: data)
         withAnimation {
           self.loadingState = .loaded(data: data)
+          firstLoading = true
         }
       }
     } catch let loadingError as LoadingError {

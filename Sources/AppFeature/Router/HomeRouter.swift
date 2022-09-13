@@ -4,26 +4,22 @@ import HomeFeature
 import ScheduleFeature
 import SwiftUI
 
-public class HomeRouter: Routing {
-  public init() {}
-
+struct HomeRouter: Routing {
   @ViewBuilder
-  public func view(for route: HomeRoute) -> some View {
+  func view(for route: HomeRoute) -> some View {
     switch route {
     case .schedule(let query):
-      SchedulePage(
-        query: query,
-        router: ScheduleRouter()
+      let scheduleRouter = ScheduleRouter()
+      let page = SchedulePage(
+        scheduleQuery: query,
+        router: scheduleRouter
       )
+      page
     case .dogList:
       DogsListPage(router: DogRouter())
     case .history:
       Text("history")
     }
-  }
-
-  public func route(from deeplink: URL) -> HomeRoute? {
-    nil
   }
 }
 

@@ -23,7 +23,7 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
       }
     }
   }
-  @State private var query: Query?
+  @State private var query: FirebaseFirestore.Query?
   @State private var uiState = UiState()
 
   private let authenticator: Authenticator = .live

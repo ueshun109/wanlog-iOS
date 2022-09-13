@@ -5,7 +5,7 @@ import Core
 
 public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
   @State private var uid: String?
-  @State private var query: Query?
+  @State private var query: Query.Schedule?
 
   private let authenticator: Authenticator = .live
   private let router: Router
@@ -55,7 +55,7 @@ public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
     }
     .task {
       self.uid = await authenticator.user()?.uid ?? ""
-      self.query = Query.schedules(uid: uid!, incompletedOnly: true)
+      self.query = Query.Schedule.all(uid: uid!)
     }
   }
 }

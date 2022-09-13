@@ -3,17 +3,79 @@ import SharedModels
 @_exported import FirebaseFirestore
 @_exported import FirebaseFirestoreSwift
 
-public extension FirebaseFirestore.Query {
-  static func schedules(uid: String, incompletedOnly: Bool = true) -> FirebaseFirestore.Query {
+public enum Query {
+  case schedule(Schedule)
+
+  public enum Schedule {
+    case all(uid: String)
+    case perDog(uid: String, dogId: String)
+
+    /// Return a query to get schedules for all dogs or specified a dog owned by a user.
+    /// - Parameters:
+    ///   - incompletedOnly: Whether to get only incompleted schedules.
+    /// - Returns: `Query`
+    public func query(incompletedOnly: Bool = true) -> FirebaseFirestore.Query {
+      let db = Firestore.firestore()
+      switch self {
+      case .all(let uid):
+        if incompletedOnly {
+          return db.collectionGroup("schedules")
+            .whereField("ownerId", isEqualTo: uid)
+            .whereField("complete", isEqualTo: false)
+            .order(by: "date", descending: false)
+        } else {
+          return db.collectionGroup("schedules")
+            .whereField("ownerId", isEqualTo: uid)
+            .order(by: "complete", descending: false)
+            .order(by: "date", descending: false)
+        }
+      case let .perDog(uid, dogId):
+        if incompletedOnly {
+          return db
+            .collection("owners")
+            .document(uid)
+            .collection("dogs")
+            .document(dogId)
+            .collection("schedules")
+            .whereField("complete", isEqualTo: false)
+            .order(by: "date", descending: false)
+        } else {
+          return db
+            .collection("owners")
+            .document(uid)
+            .collection("dogs")
+            .document(dogId)
+            .collection("schedules")
+            .order(by: "complete", descending: false)
+            .order(by: "date", descending: false)
+        }
+      }
+    }
+  }
+
+  static func schedules(
+    uid: String,
+    dogId: String,
+    scheduleId: String,
+    incompletedOnly: Bool = true
+  ) -> FirebaseFirestore.Query {
     let db = Firestore.firestore()
     if incompletedOnly {
-      return db.collectionGroup("schedules")
-        .whereField("ownerId", isEqualTo: uid)
+      return db
+        .collection("owners")
+        .document(uid)
+        .collection("dogs")
+        .document(dogId)
+        .collection("schedules")
         .whereField("complete", isEqualTo: false)
         .order(by: "date", descending: false)
     } else {
-      return db.collectionGroup("schedules")
-        .whereField("ownerId", isEqualTo: uid)
+      return db
+        .collection("owners")
+        .document(uid)
+        .collection("dogs")
+        .document(dogId)
+        .collection("schedules")
         .order(by: "complete", descending: false)
         .order(by: "date", descending: false)
     }
@@ -60,7 +122,7 @@ public extension FirebaseFirestore.Firestore {
 }
 
 public extension FirebaseFirestore.Firestore {
-  func get<T>(query: Query, type: T.Type) async throws -> [T]? where T: Decodable {
+  func get<T>(query: FirebaseFirestore.Query, type: T.Type) async throws -> [T]? where T: Decodable {
     do {
       let querySnapshot = try await query.getDocuments()
       let response: [T]? = try querySnapshot.documents.compactMap { queryDocumentSnapshot in
@@ -112,7 +174,7 @@ public extension FirebaseFirestore.Firestore {
     }
   }
 
-  func listen<T>(_ reference: Query, type: T.Type) -> AsyncThrowingStream<[T], Error> where T: Decodable {
+  func listen<T>(_ reference: FirebaseFirestore.Query, type: T.Type) -> AsyncThrowingStream<[T], Error> where T: Decodable {
     AsyncThrowingStream { continuation in
       let listener = reference.addSnapshotListener { querySnapshot, error in
         if let error = error {

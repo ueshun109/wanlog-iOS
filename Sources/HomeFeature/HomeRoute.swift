@@ -1,8 +1,8 @@
 import Core
-import FirebaseFirestore
+import FirebaseClient
 
 public enum HomeRoute: Route {
-  case schedule(Query?)
+  case schedule(Query.Schedule?)
   case dogList
   case history
 }

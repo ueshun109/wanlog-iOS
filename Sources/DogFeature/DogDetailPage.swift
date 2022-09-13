@@ -16,7 +16,6 @@ public struct DogDetailPage<Router: Routing>: View where Router._Route == DogDet
     var showCamera = false
   }
   @State private var image: UIImage?
-  @State private var query: Query?
   @State private var uid: String = ""
   @State private var uiState = UiState()
   @State private var route: DogDetailRoute? = nil {
@@ -58,7 +57,7 @@ public struct DogDetailPage<Router: Routing>: View where Router._Route == DogDet
 
         VStack(spacing: Padding.small) {
           ScheduleSection() {
-            route = .schedules(query)
+            route = .schedules(Query.Schedule.perDog(uid: uid, dogId: dog.id!))
           }
 
           Divider()
@@ -93,8 +92,7 @@ public struct DogDetailPage<Router: Routing>: View where Router._Route == DogDet
     }
     .task {
       self.uid = await authenticator.user()?.uid ?? ""
-      self.query = Firestore.firestore().schedules(uid: uid, dogId: dog.id!)
-      
+
       if let refString = dog.iconRef {
         do {
           let data = try await storage.reference(withPath: refString).get()

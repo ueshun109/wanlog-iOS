@@ -3,7 +3,7 @@ import Core
 import SwiftUI
 import HomeFeature
 
-public class AppRouter: Routing {
+public struct AppRouter: Routing {
   public init() {}
 
   @ViewBuilder
@@ -19,9 +19,5 @@ public class AppRouter: Routing {
     case .onboarding:
       Text("TODO: Onboarding")
     }
-  }
-
-  public func route(from deeplink: URL) -> AppRoute? {
-    nil
   }
 }
