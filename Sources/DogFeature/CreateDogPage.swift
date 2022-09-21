@@ -11,11 +11,13 @@ public struct CreateDogPage: View {
     var loading: Loading = .idle
     var name: String = ""
     var showAlert: Bool = false
+    var showCamera = false
+    var showConfirmationDialog = false
+    var showPhotoLibrary = false
   }
 
   @Environment(\.dismiss) var dismiss
   @State private var image: UIImage?
-  @State private var showCamera: Bool = false
   @State private var uiState = UiState()
 
   private let authenticator: Authenticator = .live
@@ -29,7 +31,7 @@ public struct CreateDogPage: View {
         VStack(spacing: Padding.xSmall) {
           HeaderSection(image: image)
             .onTapGesture {
-              showCamera.toggle()
+              uiState.showConfirmationDialog.toggle()
             }
 
           NameSection(name: $uiState.name)
@@ -43,8 +45,28 @@ public struct CreateDogPage: View {
       .background(Color.Background.primary)
       .navigationTitle("ワンちゃん迎い入れ")
       .navigationBarTitleDisplayMode(.inline)
-      .sheet(isPresented: $showCamera) {
+      .confirmationDialog(
+        "",
+        isPresented: $uiState.showConfirmationDialog,
+        titleVisibility: .hidden
+      ) {
+        Button {
+          uiState.showCamera = true
+        } label: {
+          Text("写真を撮る")
+        }
+
+        Button {
+          uiState.showPhotoLibrary = true
+        } label: {
+          Text("写真を選択")
+        }
+      }
+      .sheet(isPresented: $uiState.showCamera) {
         CameraView(image: $image)
+      }
+      .sheet(isPresented: $uiState.showPhotoLibrary) {
+        PhotoLibraryView(image: $image)
       }
       .loading($uiState.loading, showAlert: $uiState.showAlert)
       .toolbar {
