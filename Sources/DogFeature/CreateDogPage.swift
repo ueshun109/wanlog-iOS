@@ -84,7 +84,7 @@ public struct CreateDogPage: View {
           } label: {
             Text("保存")
           }
-          .disabled(uiState.name.isEmpty)
+          .disabled(uiState.name.isEmpty || image == nil)
         }
       }
     }
