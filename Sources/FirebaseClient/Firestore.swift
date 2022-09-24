@@ -4,13 +4,127 @@ import SharedModels
 @_exported import FirebaseFirestoreSwift
 
 public enum Query {
+  case certificate(Certificate)
+  case dog(Dog)
   case schedule(Schedule)
+
+  public enum Certificate {
+    case all(uid: String)
+    case perDog(uid: String, dogId: String)
+    case one(uid: String, dogId: String, certificateId: String)
+
+    /// Return a DocumentReference to get a certificate of a dog owned by a user.
+    /// - Returns: FirebaseFirestore.DocumentReference
+    public func document() -> FirebaseFirestore.DocumentReference {
+      let db = Firestore.firestore()
+      switch self {
+      case .all, .perDog:
+        fatalError("Call the query function to get the list data")
+      case .one(let uid, let dogId, let certificateId):
+        return db.collection("owners")
+          .document(uid)
+          .collection("dogs")
+          .document(dogId)
+          .collection("certificates")
+          .document(certificateId)
+      }
+    }
+
+    /// Return a Query to get all certificates of dogs owned by a user.
+    /// - Returns: `Query`
+    public func collection() -> FirebaseFirestore.Query {
+      let db = Firestore.firestore()
+      switch self {
+      case .all(let uid):
+        return db.collectionGroup("certificates")
+          .whereField("ownerId", isEqualTo: uid)
+          .order(by: "date", descending: false)
+      case .perDog(let uid, let dogId):
+        return db.collection("owners")
+          .document(uid)
+          .collection("dogs")
+          .document(dogId)
+          .collection("certificates")
+      case .one:
+        fatalError("Call the query function to get a single data")
+      }
+    }
+  }
+
+  public enum Dog {
+    case all(uid: String)
+    case one(uid: String, dogId: String)
+
+    /// Return a DocumentReference to get a single a dog owned by a user.
+    /// - Returns: FirebaseFirestore.DocumentReference
+    public func document() -> FirebaseFirestore.DocumentReference {
+      let db = Firestore.firestore()
+      switch self {
+      case .all:
+        fatalError("Call the query function to get the list data")
+      case .one(let uid, let dogId):
+        return db.collection("owners")
+          .document(uid)
+          .collection("dogs")
+          .document(dogId)
+      }
+    }
+
+    /// Return a Query to get all dogs owned by a user.
+    /// - Returns: `Query`
+    public func collection() -> FirebaseFirestore.CollectionReference {
+      let db = Firestore.firestore()
+      switch self {
+      case .all(let uid):
+        return db.collection("owners")
+          .document(uid)
+          .collection("dogs")
+      case .one:
+        fatalError("Call the query function to get a single data")
+      }
+    }
+  }
 
   public enum Schedule {
     case all(uid: String)
     case perDog(uid: String, dogId: String)
+    case one(uid: String, dogId: String, scheduleId: String)
 
-    /// Return a query to get schedules for all dogs or specified a dog owned by a user.
+
+    /// Return a CollectionReference to get schedules for all dogs or specified a dog owned by a user.
+    /// - Returns: FirebaseFirestore.CollectionReference
+    public func collection() -> FirebaseFirestore.CollectionReference {
+      let db = Firestore.firestore()
+      switch self {
+      case .all, .one:
+        fatalError("Correspond only perDog")
+      case .perDog(let uid, let dogId):
+        return db.collection("owners")
+          .document(uid)
+          .collection("dogs")
+          .document(dogId)
+          .collection("schedules")
+      }
+    }
+
+    /// Return a DocumentReference to get a single schedule for specified a dog owned by a user.
+    /// - Returns: FirebaseFirestore.DocumentReference
+    public func document() -> FirebaseFirestore.DocumentReference {
+      let db = Firestore.firestore()
+      switch self {
+      case .all, .perDog:
+        fatalError("Call the query function to get the list data")
+      case .one(let uid, let dogId, let scheduleId):
+        return db.collection("owners")
+          .document(uid)
+          .collection("dogs")
+          .document(dogId)
+          .collection("schedules")
+          .document(scheduleId)
+      }
+    }
+
+    /// Return a Query to get schedules for all dogs or specified a dog owned by a user.
     /// - Parameters:
     ///   - incompletedOnly: Whether to get only incompleted schedules.
     /// - Returns: `Query`
@@ -49,75 +163,10 @@ public enum Query {
             .order(by: "complete", descending: false)
             .order(by: "date", descending: false)
         }
+      case .one:
+        fatalError("Call the query function to get a single data")
       }
     }
-  }
-
-  static func schedules(
-    uid: String,
-    dogId: String,
-    scheduleId: String,
-    incompletedOnly: Bool = true
-  ) -> FirebaseFirestore.Query {
-    let db = Firestore.firestore()
-    if incompletedOnly {
-      return db
-        .collection("owners")
-        .document(uid)
-        .collection("dogs")
-        .document(dogId)
-        .collection("schedules")
-        .whereField("complete", isEqualTo: false)
-        .order(by: "date", descending: false)
-    } else {
-      return db
-        .collection("owners")
-        .document(uid)
-        .collection("dogs")
-        .document(dogId)
-        .collection("schedules")
-        .order(by: "complete", descending: false)
-        .order(by: "date", descending: false)
-    }
-  }
-}
-
-public extension FirebaseFirestore.Firestore {
-  func schedule(
-    uid: String,
-    dogId: String,
-    scheduleId: String
-  ) -> DocumentReference {
-    collection("owners")
-      .document(uid)
-      .collection("dogs")
-      .document(dogId)
-      .collection("schedules")
-      .document(scheduleId)
-  }
-
-  func dog(
-    uid: String,
-    dogId: String
-  ) -> DocumentReference {
-    collection("owners")
-      .document(uid)
-      .collection("dogs")
-      .document(dogId)
-  }
-
-  func dogs(uid: String) -> CollectionReference {
-    collection("owners")
-      .document(uid)
-      .collection("dogs")
-  }
-
-  func schedules(uid: String, dogId: String) -> CollectionReference {
-    collection("owners")
-      .document(uid)
-      .collection("dogs")
-      .document(dogId)
-      .collection("schedules")
   }
 }
 
@@ -195,11 +244,12 @@ public extension FirebaseFirestore.Firestore {
     }
   }
 
-  func set<T>(_ data: T, reference: CollectionReference) async throws -> DocumentReference where T: Encodable {
+  @discardableResult
+  func set<T>(_ data: T, collectionReference: CollectionReference) async throws -> DocumentReference where T: Encodable {
     try await withCheckedThrowingContinuation { [weak self] (continuation: CheckedContinuation<DocumentReference, Error>) in
       do {
         var docRef: DocumentReference?
-        docRef = try reference.addDocument(from: data) { error in
+        docRef = try collectionReference.addDocument(from: data) { error in
           if let error = error,
              let loadingError = self?.handleError(error: error)?.toLoadingError {
             logger.error(message: error)
@@ -222,10 +272,11 @@ public extension FirebaseFirestore.Firestore {
     }
   }
 
-  func set<T>(data: T, reference: DocumentReference) async throws where T: Encodable {
+  @discardableResult
+  func set<T>(_ data: T, documentReference: DocumentReference) async throws where T: Encodable {
     try await withCheckedThrowingContinuation { [weak self] (continuation: CheckedContinuation<Void, Error>) in
       do {
-        try reference.setData(from: data) { error in
+        try documentReference.setData(from: data) { error in
           if let error = error,
              let loadingError = self?.handleError(error: error)?.toLoadingError {
             logger.error(message: error)

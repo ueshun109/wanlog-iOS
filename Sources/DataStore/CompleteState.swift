@@ -1,6 +1,6 @@
 import Core
 import Foundation
-import FirebaseFirestore
+import FirebaseClient
 import SharedModels
 
 @MainActor
@@ -18,13 +18,10 @@ public class CompleteState: ObservableObject {
   public func save() async {
     let targets: [(data: Schedule, reference: DocumentReference)] = completes.values.compactMap { schedule in
       guard let id = schedule.id else { return nil }
+      let query: Query.Schedule = .one(uid: schedule.ownerId, dogId: schedule.dogId, scheduleId: id)
       return (
         data: schedule,
-        reference: db.schedule(
-          uid: schedule.ownerId,
-          dogId: schedule.dogId,
-          scheduleId: id
-        )
+        reference: query.document()
       )
     }
     do {
@@ -60,10 +57,10 @@ public class CompleteState: ObservableObject {
   /// - Parameter schedule: `Schedule`
   public func toIncomplete(_ schedule: Schedule) async throws {
     guard schedule.complete, let id = schedule.id else { return }
-    let ref = db.schedule(uid: schedule.ownerId, dogId: schedule.dogId, scheduleId: id)
+    let query: Query.Schedule = .one(uid: schedule.ownerId, dogId: schedule.dogId, scheduleId: id)
     var new = schedule
     new.complete = false
-    try await db.set(data: new, reference: ref)
+    try await db.set(new, documentReference: query.document())
   }
 
   public func status(of id: String) -> Bool? {

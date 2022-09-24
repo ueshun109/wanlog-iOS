@@ -61,8 +61,8 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
     )
     .task {
       guard let uid = await authenticator.user()?.uid else { return }
-      let db = Firestore.firestore()
-      self.query = db.dogs(uid: uid)
+      let query: Query.Dog = .all(uid: uid)
+      self.query = query.collection()
     }
   }
 

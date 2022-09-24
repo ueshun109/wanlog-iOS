@@ -98,7 +98,8 @@ public struct CreateSchedulePage: View {
             Task {
               do {
                 for schedule in schedules() {
-                  try await db.set(schedule, reference: db.schedules(uid: schedule.ownerId, dogId: schedule.dogId))
+                  let query: Query.Schedule = .perDog(uid: schedule.ownerId, dogId: schedule.dogId)
+                  try await db.set(schedule, collectionReference: query.collection())
                 }
                 uiState.loadingState = .loaded
                 dismiss()
@@ -116,7 +117,8 @@ public struct CreateSchedulePage: View {
         guard let uid = await authenticator.user()?.uid else { return }
         uiState.ownerId = uid
         do {
-          if let dogs = try await db.get(db.dogs(uid: uid), type: Dog.self) {
+          let query: Query.Dog = .all(uid: uid)
+          if let dogs = try await db.get(query: query.collection(), type: Dog.self) {
             uiState.dogs = dogs
           }
         } catch {

@@ -90,8 +90,8 @@ public struct UpdateSchedulePage: View {
               do {
                 guard let id = schedule.id else { return }
                 let schedule = createSchedule()
-                let ref = db.schedule(uid: schedule.ownerId, dogId: schedule.dogId, scheduleId: id)
-                try await db.set(data: schedule, reference: ref)
+                let query: Query.Schedule = .one(uid: schedule.ownerId, dogId: schedule.dogId, scheduleId: id)
+                try await db.set(schedule, documentReference: query.document())
                 uiState.loadingState = .loaded
                 dismiss()
               } catch let loadingError as LoadingError {
@@ -118,8 +118,8 @@ public struct UpdateSchedulePage: View {
       }
       uiState.notificationDate = Set(notificationDates)
       do {
-        let ref = db.dog(uid: uid, dogId: schedule.dogId)
-        if let dog = try await db.get(ref, type: Dog.self) {
+        let query: Query.Dog = .one(uid: uid, dogId: schedule.dogId)
+        if let dog = try await db.get(query.document(), type: Dog.self) {
           uiState.dog = dog
         }
       } catch {

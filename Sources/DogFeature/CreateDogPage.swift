@@ -104,10 +104,10 @@ private extension CreateDogPage {
     Task {
       guard let uid = await authenticator.user()?.uid else { return }
       uiState.loading = .loading
-      let ref = db.dogs(uid: uid)
+      let query: Query.Dog = .all(uid: uid)
       var newDog = dog()
       do {
-        let docRef = try await db.set(newDog, reference: ref)
+        let docRef = try await db.set(newDog, collectionReference: query.collection())
         let dogId = docRef.documentID
         let storageRef = Storage.storage().dogRef(uid: uid, dogId: dogId)
         guard let image = image else {
@@ -123,7 +123,7 @@ private extension CreateDogPage {
           try await storageRef.upload(data)
         }
         newDog.iconRef = storageRef.fullPath
-        try await db.set(data: newDog, reference: docRef)
+        try await db.set(newDog, documentReference: docRef)
         uiState.loading = .loaded
         dismiss()
       } catch let loadingError as LoadingError {
