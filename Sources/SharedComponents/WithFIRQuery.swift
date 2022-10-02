@@ -49,12 +49,11 @@ public struct WithFIRQuery<T, Success: View, Failure: View>: View where T: Decod
             listenTask.cancel()
           }
           listenTask = Task {
-            try! await Task.sleep(nanoseconds: 1_000_000_000)
-            print(new)
             await update(with: new)
           }
         }
         .onAppear {
+          guard listenTask == nil else { return }
           listenTask = Task { await update(with: query) }
         }
       }
