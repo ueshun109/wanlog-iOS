@@ -16,7 +16,7 @@ struct ContentSection: View {
       Divider()
         .padding(.leading, Padding.xSmall)
 
-      TextEditorWithPlaceholder("メモ", text: $memo)
+      TextField("メモ", text: $memo, axis: .vertical)
         .frame(height: 60, alignment: .topLeading)
         .padding(Padding.xSmall)
         .focused($focused)
