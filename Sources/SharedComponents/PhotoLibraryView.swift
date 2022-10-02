@@ -4,9 +4,14 @@ import SwiftUI
 public struct PhotoLibraryView: UIViewControllerRepresentable {
   @Binding private var image: UIImage?
   @Environment(\.dismiss) var dismiss
+  private let onSelect: ((UIImage) -> Void)?
 
-  public init(image: Binding<UIImage?>) {
+  public init(
+    image: Binding<UIImage?>,
+    onSelect: ((UIImage) -> Void)?
+  ) {
     self._image = image
+    self.onSelect = onSelect
   }
 
   public func makeUIViewController(context: Context) -> PHPickerViewController {
@@ -44,9 +49,22 @@ public struct PhotoLibraryView: UIViewControllerRepresentable {
       provider.loadObject(ofClass: UIImage.self) { [weak self] image, error in
         guard let self = self else { return }
         guard error == nil else { self.parent.dismiss(); return }
-        self.parent.image = image as? UIImage
+        if let image = image as? UIImage {
+          self.parent.image = image
+          self.parent.onSelect?(image)
+        }
         self.parent.dismiss()
       }
     }
+  }
+}
+
+public extension PhotoLibraryView {
+  init(image: Binding<UIImage?>) {
+    self.init(image: image, onSelect: nil)
+  }
+
+  init(onSelect: ((UIImage?) -> Void)?) {
+    self.init(image: .constant(nil), onSelect: onSelect)
   }
 }
