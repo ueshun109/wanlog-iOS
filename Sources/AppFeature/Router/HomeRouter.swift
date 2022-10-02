@@ -1,3 +1,4 @@
+import CertifiateFeature
 import Core
 import DogFeature
 import HomeFeature
@@ -17,8 +18,8 @@ struct HomeRouter: Routing {
       page
     case .dogList:
       DogsListPage(router: DogRouter())
-    case .history:
-      Text("history")
+    case .history(let query):
+      CertificateListPage(query: query, router: CertificateRouter())
     }
   }
 }
