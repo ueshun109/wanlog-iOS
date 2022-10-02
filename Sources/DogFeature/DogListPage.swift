@@ -119,6 +119,7 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
         Spacer()
       }
       .task {
+        guard image == nil else { return }
         if let refString = dog.iconRef {
           do {
             let data = try await storage.reference(withPath: refString).get()
