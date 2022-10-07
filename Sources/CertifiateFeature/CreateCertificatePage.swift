@@ -88,10 +88,11 @@ public struct CreateCertificatePage: View {
       )
     }
     .halfModal(isShow: $uiState.showDogModal) {
-      List(uiState.dogs, selection: $uiState.selectedDog) { dog in
-        Text(dog.name).tag(dog)
+      // I want to use `init(_:selection:rowContent:)`, but I have implement it myself.
+      // Because the behavior is unstable.
+      List(uiState.dogs) { dog in
+        DogListItem(selection: $uiState.selectedDog, dog: dog)
       }
-      .environment(\.editMode, .constant(.active))
     } onEnd: { }
     .sheet(isPresented: $uiState.showCamera) {
       switch uiState.pick {
@@ -122,6 +123,27 @@ public struct CreateCertificatePage: View {
           uiState.dogs = dogs
         }
       } catch {
+      }
+    }
+  }
+
+  // MARK: - Sections
+
+  private struct ConfirmationDialog: View {
+    @Binding var showCamera: Bool
+    @Binding var showPhotoLibrary: Bool
+
+    var body: some View {
+      Button {
+        showCamera = true
+      } label: {
+        Text("写真を撮る")
+      }
+
+      Button {
+        showPhotoLibrary = true
+      } label: {
+        Text("写真を選択")
       }
     }
   }
@@ -208,26 +230,6 @@ public struct CreateCertificatePage: View {
     }
   }
 
-  private struct ConfirmationDialog: View {
-    @Binding var showCamera: Bool
-    @Binding var showPhotoLibrary: Bool
-
-    var body: some View {
-      Button {
-        showCamera = true
-      } label: {
-        Text("写真を撮る")
-      }
-
-      Button {
-        showPhotoLibrary = true
-      } label: {
-        Text("写真を選択")
-      }
-    }
-  }
-
-
   private struct ImageListItem: View {
     let isSelected: Bool
     var image: UIImage
@@ -295,6 +297,4 @@ public struct CreateCertificatePage: View {
       }
     }
   }
-
-
 }
