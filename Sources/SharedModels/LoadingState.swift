@@ -5,7 +5,7 @@ public enum LoadingState<T: Equatable>: Equatable {
   case failed(error: LoadingError)
 }
 
-public enum Loading {
+public enum Loading: Equatable {
   case idle
   case loading
   case loaded

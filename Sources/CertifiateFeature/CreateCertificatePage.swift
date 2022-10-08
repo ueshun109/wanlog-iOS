@@ -10,7 +10,16 @@ public struct CreateCertificatePage: View {
     var date: Date = .now
     var dogs: [Dog] = []
     var images: LimitedArray<UIImage?> = .init(3)
-    var loading: Loading = .idle
+    var loading: Loading = .idle {
+      didSet {
+        switch loading {
+        case .idle, .loading, .loaded:
+          break
+        case .failed:
+          showAlert = true
+        }
+      }
+    }
     var memo: String = ""
     var ownerId: String = ""
     var pick: Pick = .new
@@ -74,15 +83,22 @@ public struct CreateCertificatePage: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       ToolBar(
-        disabledSave: !validateCertificate(
-          title: uiState.title,
-          images: uiState.images,
-          dog: uiState.selectedDog
+        disabledSave:(
+          !validateCertificate(
+            title: uiState.title,
+            images: uiState.images,
+            dog: uiState.selectedDog
+          ) || uiState.loading == .loading
         )
       ) {
         dismiss()
       } onSave: {
-        save()
+        uiState.loading = .loading
+        Task {
+          if await save() {
+            dismiss()
+          }
+        }
       }
     }
     .confirmationDialog(
@@ -320,39 +336,48 @@ private extension CreateCertificatePage {
     )
   }
 
-  func save() {
-    Task {
-      guard let uid = await authenticator.user()?.uid,
-            let dogId = uiState.selectedDog?.id,
-            let new = certificate()
-      else { return }
-      var certificate = new
-      var certificateRef: DocumentReference?
-      var imagePaths: [String] = []
+  func save() async -> Bool {
+    guard let uid = await authenticator.user()?.uid,
+          let dogId = uiState.selectedDog?.id,
+          let new = certificate()
+    else { return false }
+    var certificate = new
+    var certificateRef: DocumentReference?
+    var imagePaths: [String] = []
 
-      do {
-        certificateRef = try await CertifiateFeature.save(certificate, uid: uid, dogId: dogId)
-      } catch let loadingError as LoadingError {
-        uiState.loading = .failed(error: loadingError)
-      }
-
-      do {
-        imagePaths = try await CertifiateFeature.save(
-          uiState.images,
-          uid: uid,
-          dogId: dogId,
-          certificateTitle: certificate.title
-        )
-        guard let ref = certificateRef else {
-          throw LoadingError(errorDescription: "Failed upload data.")
-        }
-        certificate.imageRef = imagePaths
-        try await db.set(certificate, documentReference: ref)
-        dismiss()
-      } catch let loadingError as LoadingError {
-        // TODO: rmeove data
-        uiState.loading = .failed(error: loadingError)
-      }
+    do {
+      certificateRef = try await CertifiateFeature.save(certificate, uid: uid, dogId: dogId)
+    } catch let loadingError as LoadingError {
+      uiState.loading = .failed(error: loadingError)
+      return false
+    } catch {
+      let loadingError = LoadingError(errorDescription: error.localizedDescription)
+      uiState.loading = .failed(error: loadingError)
+      return false
     }
+
+    do {
+      imagePaths = try await CertifiateFeature.save(
+        uiState.images,
+        uid: uid,
+        dogId: dogId,
+        certificateTitle: certificate.title
+      )
+      guard let ref = certificateRef else {
+        throw LoadingError(errorDescription: "Failed upload data.")
+      }
+      certificate.imageRef = imagePaths
+      try await db.set(certificate, documentReference: ref)
+    } catch let loadingError as LoadingError {
+      guard let ref = certificateRef else { return false }
+      try? await db.remove(ref)
+      uiState.loading = .failed(error: loadingError)
+      return false
+    } catch {
+      let loadingError = LoadingError(errorDescription: error.localizedDescription)
+      uiState.loading = .failed(error: loadingError)
+      return false
+    }
+    return true
   }
 }
