@@ -51,6 +51,10 @@ let package = Package(
         "SharedComponents",
       ]
     ),
+    .testTarget(
+      name: "CertifiateFeatureTests",
+      dependencies: ["CertifiateFeature"]
+    ),
     .target(name: "Core"),
     .testTarget(name: "CoreTests", dependencies: ["Core"]),
     .target(
