@@ -10,11 +10,13 @@ public struct CreateCertificatePage: View {
     var date: Date = .now
     var dogs: [Dog] = []
     var images: LimitedArray<UIImage?> = .init(3)
+    var loading: Loading = .idle
     var memo: String = ""
     var ownerId: String = ""
     var pick: Pick = .new
     var selectedDog: Dog?
     var selectImageIndex: Int?
+    var showAlert = false
     var showCamera = false
     var showConfirmationDialog = false
     var showDogModal = false
@@ -80,7 +82,7 @@ public struct CreateCertificatePage: View {
       ) {
         dismiss()
       } onSave: {
-        
+        save()
       }
     }
     .confirmationDialog(
@@ -120,6 +122,7 @@ public struct CreateCertificatePage: View {
         PhotoLibraryView(image: $uiState.images[index])
       }
     }
+    .loading($uiState.loading, showAlert: $uiState.showAlert)
     .task {
       guard let uid = await authenticator.user()?.uid else { return }
       uiState.ownerId = uid
@@ -301,6 +304,54 @@ public struct CreateCertificatePage: View {
           Text("保存")
         }
         .disabled(disabledSave)
+      }
+    }
+  }
+}
+
+private extension CreateCertificatePage {
+  func certificate() -> Certificate? {
+    guard let dogId = uiState.selectedDog?.id else { return nil }
+    return Certificate(
+      dogId: dogId,
+      title: uiState.title,
+      imageRef: [],
+      date: .init(date: uiState.date)
+    )
+  }
+
+  func save() {
+    Task {
+      guard let uid = await authenticator.user()?.uid,
+            let dogId = uiState.selectedDog?.id,
+            let new = certificate()
+      else { return }
+      var certificate = new
+      var certificateRef: DocumentReference?
+      var imagePaths: [String] = []
+
+      do {
+        certificateRef = try await CertifiateFeature.save(certificate, uid: uid, dogId: dogId)
+      } catch let loadingError as LoadingError {
+        uiState.loading = .failed(error: loadingError)
+      }
+
+      do {
+        imagePaths = try await CertifiateFeature.save(
+          uiState.images,
+          uid: uid,
+          dogId: dogId,
+          certificateTitle: certificate.title
+        )
+        guard let ref = certificateRef else {
+          throw LoadingError(errorDescription: "Failed upload data.")
+        }
+        certificate.imageRef = imagePaths
+        try await db.set(certificate, documentReference: ref)
+        dismiss()
+      } catch let loadingError as LoadingError {
+        // TODO: rmeove data
+        uiState.loading = .failed(error: loadingError)
       }
     }
   }

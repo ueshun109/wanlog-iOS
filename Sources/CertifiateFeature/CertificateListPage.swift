@@ -69,7 +69,7 @@ public struct CertificateListPage<Router: Routing>: View where Router._Route == 
     )
     .onAppear {
       if uiState.query == nil {
-        uiState.query = query?.collection()
+        uiState.query = query?.query()
       }
     }
   }

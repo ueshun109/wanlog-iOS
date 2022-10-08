@@ -3,6 +3,14 @@ import SharedModels
 @_exported import FirebaseStorage
 
 public extension Storage {
+  func certificateRef(
+    uid: String,
+    dogId: String,
+    fileName: String
+  ) -> StorageReference {
+    let storageRef = reference()
+    return storageRef.child("\(uid)/\(dogId)/\(fileName).jpeg")
+  }
   func dogRef(
     uid: String,
     dogId: String,

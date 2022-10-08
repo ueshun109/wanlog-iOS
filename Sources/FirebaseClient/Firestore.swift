@@ -13,6 +13,22 @@ public enum Query {
     case perDog(uid: String, dogId: String)
     case one(uid: String, dogId: String, certificateId: String)
 
+    public func collection() -> FirebaseFirestore.CollectionReference {
+      let db = Firestore.firestore()
+      switch self {
+      case .all:
+        fatalError("Use query()")
+      case .perDog(let uid, let dogId):
+        return db.collection("owners")
+          .document(uid)
+          .collection("dogs")
+          .document(dogId)
+          .collection("certificates")
+      case .one:
+        fatalError("Call the query function to get a single data")
+      }
+    }
+
     /// Return a DocumentReference to get a certificate of a dog owned by a user.
     /// - Returns: FirebaseFirestore.DocumentReference
     public func document() -> FirebaseFirestore.DocumentReference {
@@ -31,8 +47,8 @@ public enum Query {
     }
 
     /// Return a Query to get all certificates of dogs owned by a user.
-    /// - Returns: `Query`
-    public func collection() -> FirebaseFirestore.Query {
+    /// - Returns: FirebaseFirestore.CollectionReference
+    public func query() -> FirebaseFirestore.Query {
       let db = Firestore.firestore()
       switch self {
       case .all(let uid):
@@ -70,8 +86,8 @@ public enum Query {
       }
     }
 
-    /// Return a Query to get all dogs owned by a user.
-    /// - Returns: `Query`
+    /// Return a CollectionReference to get all dogs owned by a user.
+    /// - Returns: FirebaseFirestore.CollectionReference
     public func collection() -> FirebaseFirestore.CollectionReference {
       let db = Firestore.firestore()
       switch self {
