@@ -26,6 +26,38 @@ class LimitedArrayTest: XCTestCase {
     }
   }
 
+  func testCount() {
+    XCTContext.runActivity(named: "Count") { _ in
+      XCTContext.runActivity(named: "Empty") { _ in
+        let array = LimitedArray<Int>(3)
+        XCTAssertTrue(array.isEmpty)
+      }
+
+      XCTContext.runActivity(named: "One") { _ in
+        var array = LimitedArray<Int>(3)
+        array.append(1)
+        XCTAssertEqual(array.count, 1)
+      }
+
+      XCTContext.runActivity(named: "Two") { _ in
+        var array = LimitedArray<Int>(3)
+        array.append(1)
+        array.append(2)
+        XCTAssertEqual(array.count, 2)
+      }
+
+      XCTContext.runActivity(named: "Three") { _ in
+        var array = LimitedArray<Int>(3)
+        array.append(1)
+        array.append(2)
+        array.append(3)
+        XCTAssertEqual(array.count, 3)
+        array.append(4)
+        XCTAssertEqual(array.count, 3)
+      }
+    }
+  }
+
   func testRemove() {
     XCTContext.runActivity(named: "Replace") { _ in
       XCTContext.runActivity(named: "In range") { _ in

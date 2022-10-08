@@ -71,10 +71,16 @@ public struct CreateCertificatePage: View {
     .navigationTitle("証明書追加")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
-      ToolBar {
-
+      ToolBar(
+        disabledSave: !validateCertificate(
+          title: uiState.title,
+          images: uiState.images,
+          dog: uiState.selectedDog
+        )
+      ) {
+        dismiss()
       } onSave: {
-
+        
       }
     }
     .confirmationDialog(
@@ -278,6 +284,7 @@ public struct CreateCertificatePage: View {
   }
 
   private struct ToolBar: ToolbarContent {
+    let disabledSave: Bool
     let onCancel: () -> Void
     let onSave: () -> Void
 
@@ -293,7 +300,7 @@ public struct CreateCertificatePage: View {
         Button(action: onSave) {
           Text("保存")
         }
-//        .disabled(uiState.name.isEmpty || image == nil)
+        .disabled(disabledSave)
       }
     }
   }
