@@ -7,7 +7,6 @@ import SwiftUI
 /// WithFIRQuery is a component that determines the displayed content according to the load status.
 public struct WithFIRQuery<T, Success: View, Failure: View>: View where T: Decodable, T: Equatable {
   @State private var loadingState: LoadingState<[T]>
-  @State private var firstLoading = false
   @State private var listenTask: Task<Void, Never>?
   private let db = Firestore.firestore()
   private let query: FirebaseFirestore.Query?
@@ -67,7 +66,6 @@ public struct WithFIRQuery<T, Success: View, Failure: View>: View where T: Decod
         logger.debug(message: data)
         withAnimation {
           self.loadingState = .loaded(data: data)
-          firstLoading = true
         }
       }
     } catch let loadingError as LoadingError {

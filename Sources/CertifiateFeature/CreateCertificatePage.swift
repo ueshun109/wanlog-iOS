@@ -331,14 +331,15 @@ private extension CreateCertificatePage {
     return Certificate(
       dogId: dogId,
       title: uiState.title,
+      description: uiState.memo,
       imageRef: [],
-      date: .init(date: uiState.date)
+      date: .init(date: uiState.date),
+      ownerId: uiState.ownerId
     )
   }
 
   func save() async -> Bool {
-    guard let uid = await authenticator.user()?.uid,
-          let dogId = uiState.selectedDog?.id,
+    guard let dogId = uiState.selectedDog?.id,
           let new = certificate()
     else { return false }
     var certificate = new
@@ -346,7 +347,7 @@ private extension CreateCertificatePage {
     var imagePaths: [String] = []
 
     do {
-      certificateRef = try await CertifiateFeature.save(certificate, uid: uid, dogId: dogId)
+      certificateRef = try await CertifiateFeature.save(certificate, uid: uiState.ownerId, dogId: dogId)
     } catch let loadingError as LoadingError {
       uiState.loading = .failed(error: loadingError)
       return false
@@ -359,7 +360,7 @@ private extension CreateCertificatePage {
     do {
       imagePaths = try await CertifiateFeature.save(
         uiState.images,
-        uid: uid,
+        uid: uiState.ownerId,
         dogId: dogId,
         certificateTitle: certificate.title
       )

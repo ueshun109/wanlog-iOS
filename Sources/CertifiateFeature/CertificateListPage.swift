@@ -42,14 +42,24 @@ public struct CertificateListPage<Router: Routing>: View where Router._Route == 
       if data.isEmpty {
         Text("証明書があれば登録してみましょう。")
       } else {
-        List {
-          ForEach(data) { certificate in
-            CertificateItem(certificate: certificate)
+        let (dic, keys) = dictionaryAndKeys(from: data)
+        ScrollView {
+          LazyVStack(alignment: .leading, spacing: Padding.small, pinnedViews: [.sectionHeaders]) {
+            ForEach(keys, id: \.self) { date in
+              Section {
+                ForEach(dic[date]!, id: \.self) { certificate in
+                  CertificateItem(certificate: certificate)
+                }
+                .padding(.horizontal, Padding.medium)
+              } header: {
+                HeaderSection(title: date.toString(.yearAndMonthAndDayWithSlash))
+              }
+            }
           }
         }
       }
     } onFailure: { error in
-
+      Text(error.localizedDescription)
     }
     .toolbar {
       ToolbarItem(placement: .navigationBarTrailing) {
@@ -77,17 +87,27 @@ public struct CertificateListPage<Router: Routing>: View where Router._Route == 
   private struct CertificateItem: View {
     @State var image: UIImage?
     let certificate: Certificate
+    let storage: Storage = .storage()
 
     var body: some View {
       HStack(alignment: .top, spacing: Padding.xSmall) {
-        Rectangle()
-          .fill(Color.gray)
-          .frame(width: 40, height: 40)
-          .clipShape(RoundedRectangle(cornerRadius: 8))
+        if let image = image {
+          Image(uiImage: image)
+            .resizable()
+            .frame(width: 40, height: 40)
+            .scaledToFit()
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        } else {
+          Image.photo
+            .resizable()
+            .frame(width: 40, height: 40)
+            .scaledToFit()
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
 
         VStack(alignment: .leading) {
           Text(certificate.title)
-            .font(.title3)
+            .font(.headline)
             .foregroundColor(Color.Label.primary)
 
           Text(certificate.description ?? "")
@@ -95,6 +115,20 @@ public struct CertificateListPage<Router: Routing>: View where Router._Route == 
             .foregroundColor(Color.Label.secondary)
         }
         .lineLimit(1)
+      }
+      .task {
+        guard image == nil,
+              let ref = certificate.imageRef.first,
+              let data = try? await storage.reference(withPath: ref).get()
+        else { return }
+        image = UIImage(data: data)
+
+//        for ref in certificate.imageRef {
+//          guard let data = try? await storage.reference(withPath: ref).get(),
+//                let image = UIImage(data: data)
+//          else { continue }
+//          images.append(image)
+//        }
       }
     }
   }
@@ -129,6 +163,23 @@ public struct CertificateListPage<Router: Routing>: View where Router._Route == 
     }
   }
 
+  private struct HeaderSection: View {
+    let title: String
+
+    var body: some View {
+      HStack {
+        Text(title)
+          .font(.headline)
+          .padding(.leading, Padding.medium)
+          .padding(.vertical, Padding.xSmall)
+          .foregroundColor(Color.Label.secondary)
+        Spacer()
+      }
+      .frame(maxWidth: .infinity)
+      .background(Color.Background.primary)
+    }
+  }
+
   struct CertificateDetailPreviews: PreviewProvider {
     static var previews: some View {
       CertificateDetail()
@@ -137,7 +188,7 @@ public struct CertificateListPage<Router: Routing>: View where Router._Route == 
 
   struct CertificateItemPreviews: PreviewProvider {
     static var previews: some View {
-      CertificateItem(certificate: .init(dogId: "", title: "タイトル", imageRef: [], date: .init(date: .now)))
+      CertificateItem(certificate: .init(dogId: "", title: "タイトル", imageRef: [], date: .init(date: .now), ownerId: ""))
     }
   }
 }
