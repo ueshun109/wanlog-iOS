@@ -26,6 +26,7 @@ let package = Package(
         "DogFeature",
         "HomeFeature",
         "OnboardingFeature",
+        "RemoteNotificationsClient",
         "SharedComponents",
         "SharedModels",
         "ScheduleFeature",
@@ -98,6 +99,9 @@ let package = Package(
       ]
     ),
     .target(
+      name: "RemoteNotificationsClient"
+    ),
+    .target(
       name: "SharedComponents",
       dependencies: [
         "FirebaseClient",
@@ -114,6 +118,7 @@ let package = Package(
         .product(name: "FirebaseFirestoreSwift", package: "Firebase"),
       ]
     ),
+    .testTarget(name: "SharedModelsTests", dependencies: ["SharedModels"]),
     .target(
       name: "Styleguide",
       resources: [.process("Resources/"),]

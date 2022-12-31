@@ -6,11 +6,13 @@ public extension Storage {
   func certificateRef(
     uid: String,
     dogId: String,
+    folderName: String,
     fileName: String
   ) -> StorageReference {
     let storageRef = reference()
-    return storageRef.child("\(uid)/\(dogId)/\(fileName).jpeg")
+    return storageRef.child("\(uid)/\(dogId)/certificates/\(folderName)/\(fileName).jpeg")
   }
+
   func dogRef(
     uid: String,
     dogId: String,
@@ -19,6 +21,8 @@ public extension Storage {
     let storageRef = reference()
     return storageRef.child("\(uid)/\(dogId)/\(name(fileName))")
   }
+
+  func reference(from path: String) -> StorageReference { reference().child(path) }
 
   func name(_ arg: String?) -> String {
     let name = arg ?? iso8601Full.string(from: .now)

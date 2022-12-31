@@ -1,7 +1,7 @@
 import UIKit
 
 public extension UIImage {
-  /// Verify if it exceeds 1KB
+  /// Verify if it exceeds specified byte.
   /// - Parameter mb: Kilobyte
   /// - Returns: Return `true` if the specified size is exceeded
   func exceed(_ byte: Int) -> Bool {

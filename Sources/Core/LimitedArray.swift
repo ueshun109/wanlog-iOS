@@ -1,9 +1,15 @@
 public struct LimitedArray<T: Equatable>: Equatable {
   private let max: Int
-  private var elements: [T] = []
+  private var elements: [T]
 
-  public init(_ max: Int) {
+  public init(_ max: Int, elements: [T] = []) {
     self.max = max
+
+    if elements.count <= max {
+      self.elements = elements
+    } else {
+      self.elements = Array(elements[0..<max])
+    }
   }
 
   @discardableResult
@@ -36,6 +42,8 @@ public struct LimitedArray<T: Equatable>: Equatable {
     elements[index] = value
     return true
   }
+
+  public func toArray() -> [T] { elements }
 }
 
 // MARK: - RandomAccessCollection
@@ -53,6 +61,8 @@ extension LimitedArray: RandomAccessCollection {
     elements.index(after: i)
   }
 }
+
+// MARK: - MutableCollection
 
 extension LimitedArray: MutableCollection {
   public subscript(position: Int) -> T {

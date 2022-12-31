@@ -10,6 +10,8 @@ struct CertificateRouter: Routing {
       NavigationView {
         CreateCertificatePage()
       }
+    case .detail(let certificate):
+      CertificateDetailPage(certificate: certificate)
     }
   }
 }

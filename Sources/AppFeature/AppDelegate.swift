@@ -18,6 +18,8 @@ public final class AppDelegate: NSObject, UIApplicationDelegate {
     setting.isPersistenceEnabled = false
     Firestore.firestore().settings = setting
 
+    UIApplication.shared.registerForRemoteNotifications()
+
     userNotification.delegate
       .sink { _ in
         print("complete")

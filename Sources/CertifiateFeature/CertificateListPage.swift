@@ -7,6 +7,8 @@ import SwiftUI
 
 public struct CertificateListPage<Router: Routing>: View where Router._Route == CertificateRoute {
   private struct UiState {
+    /// Flag for whether to push transition.
+    var push = false
     /// Firestore query.
     var query: FirebaseFirestore.Query?
     /// Flag for whether to modal transition.
@@ -20,6 +22,8 @@ public struct CertificateListPage<Router: Routing>: View where Router._Route == 
       switch route {
       case .create:
         uiState.showModal = true
+      case .detail:
+        uiState.push = true
       case .none:
         break
       }
@@ -48,7 +52,9 @@ public struct CertificateListPage<Router: Routing>: View where Router._Route == 
             ForEach(keys, id: \.self) { date in
               Section {
                 ForEach(dic[date]!, id: \.self) { certificate in
-                  CertificateItem(certificate: certificate)
+                  CertificateItem(certificate: certificate) {
+                    route = .detail(certificate: certificate)
+                  }
                 }
                 .padding(.horizontal, Padding.medium)
               } header: {
@@ -73,7 +79,7 @@ public struct CertificateListPage<Router: Routing>: View where Router._Route == 
     .navigate(
       router: router,
       route: route,
-      isActive: .constant(false),
+      isActive: $uiState.push,
       isPresented: $uiState.showModal,
       onDismiss: nil
     )
@@ -88,47 +94,43 @@ public struct CertificateListPage<Router: Routing>: View where Router._Route == 
     @State var image: UIImage?
     let certificate: Certificate
     let storage: Storage = .storage()
+    let action: () -> Void
 
     var body: some View {
-      HStack(alignment: .top, spacing: Padding.xSmall) {
-        if let image = image {
-          Image(uiImage: image)
-            .resizable()
-            .frame(width: 40, height: 40)
-            .scaledToFit()
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-        } else {
-          Image.photo
-            .resizable()
-            .frame(width: 40, height: 40)
-            .scaledToFit()
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-        }
+      Button(action: action) {
+        HStack(alignment: .top, spacing: Padding.xSmall) {
+          if let image = image {
+            Image(uiImage: image)
+              .resizable()
+              .frame(width: 40, height: 40)
+              .scaledToFit()
+              .clipShape(RoundedRectangle(cornerRadius: 8))
+          } else {
+            Image.photo
+              .resizable()
+              .frame(width: 40, height: 40)
+              .scaledToFit()
+              .clipShape(RoundedRectangle(cornerRadius: 8))
+          }
 
-        VStack(alignment: .leading) {
-          Text(certificate.title)
-            .font(.headline)
-            .foregroundColor(Color.Label.primary)
+          VStack(alignment: .leading) {
+            Text(certificate.title)
+              .font(.headline)
+              .foregroundColor(Color.Label.primary)
 
-          Text(certificate.description ?? "")
-            .font(.caption)
-            .foregroundColor(Color.Label.secondary)
+            Text(certificate.description ?? "")
+              .font(.caption)
+              .foregroundColor(Color.Label.secondary)
+          }
+          .lineLimit(1)
         }
-        .lineLimit(1)
       }
       .task {
         guard image == nil,
-              let ref = certificate.imageRef.first,
+              let ref = certificate.imageRefs.first,
               let data = try? await storage.reference(withPath: ref).get()
         else { return }
         image = UIImage(data: data)
-
-//        for ref in certificate.imageRef {
-//          guard let data = try? await storage.reference(withPath: ref).get(),
-//                let image = UIImage(data: data)
-//          else { continue }
-//          images.append(image)
-//        }
       }
     }
   }
@@ -188,7 +190,15 @@ public struct CertificateListPage<Router: Routing>: View where Router._Route == 
 
   struct CertificateItemPreviews: PreviewProvider {
     static var previews: some View {
-      CertificateItem(certificate: .init(dogId: "", title: "タイトル", imageRef: [], date: .init(date: .now), ownerId: ""))
+      CertificateItem(
+        certificate: .init(
+          dogId: "",
+          title: "タイトル",
+          imageRefs: [],
+          date: .init(date: .now),
+          ownerId: ""
+        )
+      ) { }
     }
   }
 }

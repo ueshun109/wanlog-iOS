@@ -39,13 +39,31 @@ func validateCertificate<Images: Collection>(
 /// - Throws: `LoadingError`
 /// - Returns: If the save succeededs, return `DocumentReference`.
 func save(
-  _ certificate: Certificate,
+  certificate: Certificate,
   uid: String,
   dogId: String
 ) async throws -> DocumentReference {
   let db = Firestore.firestore()
   let query: Query.Certificate = .perDog(uid: uid, dogId: dogId)
   return try await db.set(certificate, collectionReference: query.collection())
+}
+
+/// Update certificate data.
+/// - Parameters:
+///   - certificate: `Certificate`
+///   - uid: user id
+///   - dogId: dog id
+///   - certificateId:
+/// - Throws:
+func update(
+  certificate: Certificate,
+  uid: String,
+  dogId: String,
+  certificateId: String
+) async throws {
+  let db = Firestore.firestore()
+  let query: Query.Certificate = .one(uid: uid, dogId: dogId, certificateId: certificateId)
+  try await db.set(certificate, documentReference: query.document())
 }
 
 /// Save certificate images.
@@ -56,12 +74,39 @@ func save(
 ///   - certificateTitle: use for image file name.
 /// - Throws: `LoadingError`
 /// - Returns: If the save succeededs, return ``.
-func save<Images: Collection>(
-  _ images: Images,
+//func save(
+//  images: [UIImage?],
+//  uid: String,
+//  dogId: String,
+//  certificateTitle: String
+//) async throws -> [String] {
+//  let oneMB = 1024 * 1024
+//  var storagePaths: [String] = []
+//  for (index, image) in images.enumerated() {
+//    guard let image else { continue }
+//    let storageRef = Storage.storage().certificateRef(
+//      uid: uid,
+//      dogId: dogId,
+//      fileName: "\(certificateTitle)-\(index + 1)"
+//    )
+//    if image.exceed(oneMB) {
+//      let data = image.resize(to: oneMB)
+//      try await storageRef.upload(data)
+//    } else if let data = image.pngData() {
+//      try await storageRef.upload(data)
+//    }
+//    storagePaths.append(storageRef.fullPath)
+//  }
+//  return storagePaths
+//}
+
+func create(
+  images: [UIImage?],
   uid: String,
   dogId: String,
-  certificateTitle: String
-) async throws -> [String] where Images.Element == UIImage? {
+  folderName: String,
+  existedImageCount: Int
+) async throws -> [String] {
   let oneMB = 1024 * 1024
   var storagePaths: [String] = []
   for (index, image) in images.enumerated() {
@@ -69,7 +114,8 @@ func save<Images: Collection>(
     let storageRef = Storage.storage().certificateRef(
       uid: uid,
       dogId: dogId,
-      fileName: "\(certificateTitle)-\(index)"
+      folderName: folderName,
+      fileName: "\(existedImageCount + index + 1)"
     )
     if image.exceed(oneMB) {
       let data = image.resize(to: oneMB)
@@ -81,3 +127,41 @@ func save<Images: Collection>(
   }
   return storagePaths
 }
+
+func update(items: [String: UIImage?]) async throws {
+  let oneMB = 1024 * 1024
+  for item in items {
+    guard let image = item.value else { continue }
+    let storageRef = Storage.storage().reference(from: item.key)
+    if image.exceed(oneMB) {
+      let data = image.resize(to: oneMB)
+      try await storageRef.upload(data)
+    } else if let data = image.pngData() {
+      try await storageRef.upload(data)
+    }
+  }
+}
+
+func remove(paths: [String]) async throws {
+  for path in paths {
+    let storageRef = Storage.storage().reference(from: path)
+    try await storageRef.delete()
+  }
+}
+
+//func save(
+//  image: UIImage,
+//  uid: String,
+//  dogId: String,
+//  fileName: String
+//) async throws -> String {
+//  let oneMB = 1024 * 1024
+//  let storageRef = Storage.storage().certificateRef(uid: uid, dogId: dogId, fileName: fileName)
+//  if image.exceed(oneMB) {
+//    let data = image.resize(to: oneMB)
+//    try await storageRef.upload(data)
+//  } else if let data = image.pngData() {
+//    try await storageRef.upload(data)
+//  }
+//  return storageRef.fullPath
+//}

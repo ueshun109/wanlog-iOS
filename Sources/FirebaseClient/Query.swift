@@ -24,7 +24,7 @@ public enum Query {
           .document(dogId)
           .collection("certificates")
       case .one:
-        fatalError("Call the query function to get a single data")
+        fatalError("Call the document function to get a single data")
       }
     }
 
