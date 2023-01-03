@@ -2,18 +2,18 @@ import CertifiateFeature
 import Core
 import DogFeature
 import HomeFeature
-import ScheduleFeature
 import SwiftUI
+import TaskFeature
 
 struct HomeRouter: Routing {
   @ViewBuilder
   func view(for route: HomeRoute) -> some View {
     switch route {
-    case .schedule(let query):
-      let scheduleRouter = ScheduleRouter()
-      let page = SchedulePage(
-        scheduleQuery: query,
-        router: scheduleRouter
+    case .taskList(let query):
+      let taskRouter = TaskRouter()
+      let page = TaskListPage(
+        normalTaskQuery: query,
+        router: taskRouter
       )
       page
     case .dogList:
@@ -24,14 +24,14 @@ struct HomeRouter: Routing {
   }
 }
 
-struct ScheduleRouter: Routing {
+struct TaskRouter: Routing {
   @ViewBuilder
-  func view(for route: ScheduleRoute) -> some View {
+  func view(for route: TaskRoute) -> some View {
     switch route {
     case .create:
-      CreateSchedulePage()
-    case .detail(let schedule):
-      UpdateSchedulePage(schedule: schedule)
+      CreateTaskPage()
+    case .detail(let task):
+      UpdateTaskPage(task: task)
     }
   }
 }

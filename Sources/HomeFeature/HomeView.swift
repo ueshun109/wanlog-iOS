@@ -6,7 +6,7 @@ import Core
 public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
   @State private var uid: String?
   @State private var certificateQuery: Query.Certificate?
-  @State private var scheduleQuery: Query.Schedule?
+  @State private var normalTaskQuery: Query.NormalTask?
 
   private let authenticator: Authenticator = .live
   private let router: Router
@@ -16,7 +16,7 @@ public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
   }
 
   private enum Tag {
-    case schedule
+    case taskList
     case dogList
     case history
   }
@@ -24,8 +24,8 @@ public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
   public var body: some View {
     TabView {
       NavigationView {
-        if let query = scheduleQuery {
-          router.view(for: .schedule(query))
+        if let query = normalTaskQuery {
+          router.view(for: .taskList(query))
             .navigationTitle(Text("予定"))
         } else {
           EmptyView()
@@ -35,7 +35,7 @@ public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
         Image.calendar
         Text("ホーム")
       }
-      .tag(Tag.schedule)
+      .tag(Tag.taskList)
 
       NavigationView {
         router.view(for: .dogList)
@@ -65,7 +65,7 @@ public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
     }
     .task {
       self.uid = await authenticator.user()?.uid ?? ""
-      self.scheduleQuery = .all(uid: uid!)
+      self.normalTaskQuery = .all(uid: uid!)
       self.certificateQuery = .all(uid: uid!)
     }
   }

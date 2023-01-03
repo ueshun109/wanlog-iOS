@@ -4,7 +4,7 @@ public extension View {
   func halfModal<Sheet: View>(
     isShow: Binding<Bool>,
     @ViewBuilder sheet: @escaping () -> Sheet,
-    onEnd: @escaping () -> ()
+    onEnd: (() -> ())? = nil
   ) -> some View {
     return self
       .background(
@@ -20,7 +20,7 @@ public extension View {
 struct HalfModalSheet<Sheet: View>: UIViewControllerRepresentable {
   var sheet: Sheet
   @Binding var isShow: Bool
-  var onClose: () -> Void
+  var onClose: (() -> Void)?
 
   func makeUIViewController(context: Context) -> UIViewController {
     UIViewController()
@@ -35,7 +35,7 @@ struct HalfModalSheet<Sheet: View>: UIViewControllerRepresentable {
       sheetController.presentationController!.delegate = context.coordinator
       viewController.present(sheetController, animated: true)
     } else {
-      onClose()
+      onClose?()
 //      viewController.dismiss(animated: true) { onClose() }
     }
   }
@@ -57,9 +57,9 @@ struct HalfModalSheet<Sheet: View>: UIViewControllerRepresentable {
 
   final class Coordinator: NSObject, UISheetPresentationControllerDelegate {
     var parent: HalfModalSheet
-    var onClose: () -> Void
+    var onClose: (() -> Void)?
 
-    init(parent: HalfModalSheet, onClose: @escaping () -> Void) {
+    init(parent: HalfModalSheet, onClose: (() -> Void)?) {
       self.parent = parent
       self.onClose = onClose
     }

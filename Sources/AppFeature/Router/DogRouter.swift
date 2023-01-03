@@ -1,7 +1,7 @@
 import Core
 import DogFeature
-import ScheduleFeature
 import SwiftUI
+import TaskFeature
 
 struct DogRouter: Routing {
   @ViewBuilder
@@ -19,8 +19,8 @@ struct DogDetailRouter: Routing {
   @ViewBuilder
   func view(for route: DogDetailRoute) -> some View {
     switch route {
-    case .schedules(let query):
-      SchedulePage(scheduleQuery: query, router: ScheduleRouter())
+    case .tasks(let query):
+      TaskListPage(normalTaskQuery: query, router: TaskRouter())
     }
   }
 }

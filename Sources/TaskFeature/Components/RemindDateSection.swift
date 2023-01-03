@@ -1,7 +1,7 @@
 import Styleguide
 import SwiftUI
 
-struct SettingSection: View {
+struct RemindDateSection: View {
   @Binding var showNotificationModal: Bool
   @FocusState var focused: Bool
 

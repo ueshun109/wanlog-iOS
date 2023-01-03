@@ -1,5 +1,8 @@
 import Combine
 import Firebase
+import FirebaseClient
+import FirebaseMessaging
+import SharedModels
 import UIKit
 @_exported import UserNotificationClient
 
@@ -33,5 +36,18 @@ public final class AppDelegate: NSObject, UIApplicationDelegate {
       }
       .store(in: &self.cancellables)
     return true
+  }
+
+  public func application(
+    _ application: UIApplication,
+    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+  ) {
+    Messaging.messaging().apnsToken = deviceToken
+  }
+
+  public func application(
+    _ application: UIApplication,
+    didFailToRegisterForRemoteNotificationsWithError error: Error
+  ) {
   }
 }

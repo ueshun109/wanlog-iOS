@@ -1,32 +1,33 @@
 import FirebaseClient
-import SharedComponents
 import SharedModels
 import Styleguide
 import SwiftUI
 
-public struct CreateSchedulePage: View {
+public struct UpdateTaskPage: View {
   private struct UiState {
     var allDay: Bool = false
-    var dogs: [Dog] = []
+    var dog: Dog?
     var loadingState: Loading = .idle
     var memo: String = ""
     var notificationDate: Set<NotificationDate> = []
     var ownerId: String = ""
-    var schedule: Date = .init()
-    var selectedDogs: Set<Dog> = []
+    var expiredDate: Date = .init()
     var showAlert = false
-    var showDogsModal = false
     var showNotificationModal = false
     var title: String = ""
   }
-  private let db = Firestore.firestore()
+
   private let authenticator: Authenticator = .live
+  private let db = Firestore.firestore()
+  private let task: NormalTask
 
   @Environment(\.dismiss) var dismiss
   @FocusState private var focused: Bool
   @State private var uiState = UiState()
 
-  public init() {}
+  public init(task: NormalTask) {
+    self.task = task
+  }
 
   public var body: some View {
     NavigationView {
@@ -38,15 +39,11 @@ public struct CreateSchedulePage: View {
             focused: _focused
           )
 
-          DogsSection(
-            showDogsModal: $uiState.showDogsModal,
-            focused: _focused,
-            dogs: uiState.selectedDogs
-          )
+          DogSection(name: uiState.dog?.name ?? "")
 
-          ScheduleSection(
+          TaskSection(
             allDay: $uiState.allDay,
-            schedule: $uiState.schedule,
+            expiredDate: $uiState.expiredDate,
             focused: _focused
           )
 
@@ -59,12 +56,6 @@ public struct CreateSchedulePage: View {
         }
         .padding(Padding.xSmall)
       }
-      .halfModal(isShow: $uiState.showDogsModal) {
-        List(uiState.dogs, selection: $uiState.selectedDogs) { dog in
-          Text(dog.name).tag(dog)
-        }
-        .environment(\.editMode, .constant(.active))
-      } onEnd: { }
       .halfModal(isShow: $uiState.showNotificationModal) {
         VStack(alignment: .leading, spacing: 0) {
           Text("予定のリマインド通知")
@@ -82,7 +73,7 @@ public struct CreateSchedulePage: View {
       } onEnd: { }
       .loading($uiState.loadingState, showAlert: $uiState.showAlert)
       .background(Color.Background.primary)
-      .navigationTitle("新規予定")
+      .navigationTitle("詳細")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
@@ -97,55 +88,87 @@ public struct CreateSchedulePage: View {
           Button {
             Task {
               do {
-                for schedule in schedules() {
-                  let query: Query.Schedule = .perDog(uid: schedule.ownerId, dogId: schedule.dogId)
-                  try await db.set(schedule, collectionReference: query.collection())
-                }
+                guard let id = task.id else { return }
+                let task = createTask()
+                let query: Query.NormalTask = .one(uid: task.ownerId, dogId: task.dogId, taskId: id)
+                try await db.set(task, documentReference: query.document())
                 uiState.loadingState = .loaded
                 dismiss()
               } catch let loadingError as LoadingError {
                 uiState.loadingState = .failed(error: loadingError)
+              } catch {
+                print(error)
               }
             }
           } label: {
-            Text("保存")
+            Text("完了")
           }
           .disabled(uiState.title.isEmpty)
         }
       }
-      .task {
-        guard let uid = await authenticator.user()?.uid else { return }
-        uiState.ownerId = uid
-        do {
-          let query: Query.Dog = .all(uid: uid)
-          if let dogs = try await db.get(query: query.collection(), type: Dog.self) {
-            uiState.dogs = dogs
-          }
-        } catch {
+    }
+    .task {
+      guard let uid = await authenticator.user()?.uid else { return }
+      uiState.ownerId = uid
+      uiState.title = task.content
+      uiState.memo = task.memo ?? ""
+      uiState.expiredDate = task.expiredDate.dateValue()
+      let notificationDates = task.reminderDate?.compactMap {
+        NotificationDate(lhs: task.expiredDate.dateValue(), rhs: $0.dateValue())
+      }
+      if let notificationDates {
+        uiState.notificationDate = Set(notificationDates)
+      }
+      do {
+        let query: Query.Dog = .one(uid: uid, dogId: task.dogId)
+        if let dog = try await db.get(query.document(), type: Dog.self) {
+          uiState.dog = dog
         }
+      } catch {
       }
     }
   }
-}
 
-private extension CreateSchedulePage {
-  func schedules() -> [Schedule] {
-    uiState.selectedDogs.map { dog in
-      Schedule(
-        date: .init(date: uiState.schedule),
-        content: uiState.title,
-        complete: false,
-        memo: uiState.memo,
-        notificationDate: uiState.notificationDate.map { notification in .init(date: notification.date(from: uiState.schedule)) },
-        ownerId: uiState.ownerId,
-        dogId: dog.id!
+  private struct DogSection: View {
+    let name: String
+
+    var body: some View {
+      HStack {
+        Image.person
+          .frame(width: 16, height: 16)
+          .foregroundColor(.white)
+          .padding(6)
+          .background(.blue)
+          .cornerRadius(6)
+
+        Text(name)
+
+        Spacer()
+      }
+      .foregroundColor(Color.Label.primary)
+      .padding(Padding.small)
+      .background(Color.Background.secondary)
+      .clipShape(
+        RoundedRectangle(cornerRadius: 8)
       )
     }
   }
 }
 
-struct CreateSchedulePage_Previews: PreviewProvider {
-  static var previews: some View {
-    CreateSchedulePage()
+private extension UpdateTaskPage {
+  func createTask() -> NormalTask {
+    .init(
+      id: task.id!,
+      content: uiState.title,
+      complete: false,
+      dogId: uiState.dog!.id!,
+      expiredDate: .init(date: uiState.expiredDate),
+      memo: uiState.memo,
+      ownerId: uiState.ownerId,
+      priority: .medium, // TODO: UIで選択できるようにする,
+      reminderDate:  uiState.notificationDate.map { notification in
+        .init(date: notification.date(from: uiState.expiredDate))
+      }
+    )
   }
 }

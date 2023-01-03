@@ -7,7 +7,7 @@ import SharedModels
 public class CompleteState: ObservableObject {
   public typealias ID = String
   private let db = Firestore.firestore()
-  @Published public private(set) var completes: [ID: Schedule] = [:]
+  @Published public private(set) var completes: [ID: NormalTask] = [:]
 
   public init() {}
 
@@ -16,11 +16,11 @@ public class CompleteState: ObservableObject {
   }
 
   public func save() async {
-    let targets: [(data: Schedule, reference: DocumentReference)] = completes.values.compactMap { schedule in
-      guard let id = schedule.id else { return nil }
-      let query: Query.Schedule = .one(uid: schedule.ownerId, dogId: schedule.dogId, scheduleId: id)
+    let targets: [(data: NormalTask, reference: DocumentReference)] = completes.values.compactMap { task in
+      guard let id = task.id else { return nil }
+      let query: Query.NormalTask = .one(uid: task.ownerId, dogId: task.dogId, taskId: id)
       return (
-        data: schedule,
+        data: task,
         reference: query.document()
       )
     }
@@ -32,7 +32,7 @@ public class CompleteState: ObservableObject {
     }
   }
 
-  public func update(_ id: String, schedule: Schedule) {
+  public func update(_ id: String, task: NormalTask) {
 //    guard !schedule.complete else {
 //      toIncomplete(schedule)
 //      return
@@ -45,9 +45,9 @@ public class CompleteState: ObservableObject {
 //    } else {
 //      completes[id] = schedule
 //    }
-    logger.debug(message: schedule.complete)
-    if schedule.complete {
-      completes[id] = schedule
+    logger.debug(message: task.complete)
+    if task.complete {
+      completes[id] = task
     } else {
       completes.removeValue(forKey: id)
     }
@@ -55,10 +55,10 @@ public class CompleteState: ObservableObject {
 
   /// Change a schedule to incomplete if schedue is complete.
   /// - Parameter schedule: `Schedule`
-  public func toIncomplete(_ schedule: Schedule) async throws {
-    guard schedule.complete, let id = schedule.id else { return }
-    let query: Query.Schedule = .one(uid: schedule.ownerId, dogId: schedule.dogId, scheduleId: id)
-    var new = schedule
+  public func toIncomplete(_ task: NormalTask) async throws {
+    guard task.complete, let id = task.id else { return }
+    let query: Query.NormalTask = .one(uid: task.ownerId, dogId: task.dogId, taskId: id)
+    var new = task
     new.complete = false
     try await db.set(new, documentReference: query.document())
   }

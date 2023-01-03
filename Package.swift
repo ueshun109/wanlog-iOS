@@ -10,7 +10,7 @@ let package = Package(
   products: [
     .library(name: "AppFeature", targets: ["AppFeature"]),
     .library(name: "CertifiateFeature", targets: ["CertifiateFeature"]),
-    .library(name: "ScheduleFeature", targets: ["ScheduleFeature"]),
+    .library(name: "TaskFeature", targets: ["TaskFeature"]),
     .library(name: "Styleguide", targets: ["Styleguide"]),
     .library(name: "SharedComponents", targets: ["SharedComponents"]),
   ],
@@ -24,22 +24,23 @@ let package = Package(
         "CertifiateFeature",
         "Core",
         "DogFeature",
+        "FirebaseClient",
         "HomeFeature",
         "OnboardingFeature",
         "RemoteNotificationsClient",
         "SharedComponents",
         "SharedModels",
-        "ScheduleFeature",
+        "TaskFeature",
         "UserNotificationClient",
 //        .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk"),
         .product(name: "FirebaseAuth", package: "Firebase"),
 //        .product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk"),
-//        .product(name: "FirebaseMessaging", package: "firebase-ios-sdk"),
+        .product(name: "FirebaseMessaging", package: "Firebase"),
       ]
     ),
     .testTarget(name: "AppFeatureTests", dependencies: ["AppFeature"]),
     .target(
-      name: "ScheduleFeature",
+      name: "TaskFeature",
       dependencies: [
         "DataStore",
         "SharedComponents",
@@ -48,6 +49,7 @@ let package = Package(
     .target(
       name: "CertifiateFeature",
       dependencies: [
+        "DataStore",
         "FirebaseClient",
         "SharedComponents",
       ]
@@ -99,7 +101,8 @@ let package = Package(
       ]
     ),
     .target(
-      name: "RemoteNotificationsClient"
+      name: "RemoteNotificationsClient",
+      dependencies: [.product(name: "FirebaseMessaging", package: "Firebase")]
     ),
     .target(
       name: "SharedComponents",

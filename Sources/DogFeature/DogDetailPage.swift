@@ -21,7 +21,7 @@ public struct DogDetailPage<Router: Routing>: View where Router._Route == DogDet
   @State private var route: DogDetailRoute? = nil {
     didSet {
       switch route {
-      case .schedules:
+      case .tasks:
         uiState.pushTransition = true
       case .none:
         break
@@ -56,8 +56,8 @@ public struct DogDetailPage<Router: Routing>: View where Router._Route == DogDet
         }
 
         VStack(spacing: Padding.small) {
-          ScheduleSection() {
-            route = .schedules(Query.Schedule.perDog(uid: uid, dogId: dog.id!))
+          TaskSection() {
+            route = .tasks(Query.NormalTask.perDog(uid: uid, dogId: dog.id!))
           }
 
           Divider()
@@ -104,7 +104,7 @@ public struct DogDetailPage<Router: Routing>: View where Router._Route == DogDet
     }
   }
 
-  private struct ScheduleSection: View {
+  private struct TaskSection: View {
     let onTap: () -> Void
 
     var body: some View {
