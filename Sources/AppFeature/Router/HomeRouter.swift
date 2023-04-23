@@ -10,11 +10,8 @@ struct HomeRouter: Routing {
   func view(for route: HomeRoute) -> some View {
     switch route {
     case .taskList(let query):
-      let taskRouter = TaskRouter()
-      let page = TaskListPage(
-        normalTaskQuery: query,
-        router: taskRouter
-      )
+      let todoRouter = TodoRouter()
+      let page = TodoListPage(todoQuery: query, router: todoRouter)
       page
     case .dogList:
       DogsListPage(router: DogRouter())
@@ -24,14 +21,14 @@ struct HomeRouter: Routing {
   }
 }
 
-struct TaskRouter: Routing {
+struct TodoRouter: Routing {
   @ViewBuilder
-  func view(for route: TaskRoute) -> some View {
+  func view(for route: TodoRoute) -> some View {
     switch route {
     case .create:
-      CreateTaskPage()
-    case .detail(let task):
-      UpdateTaskPage(task: task)
+      TodoCreatePage()
+    case .detail(let todo):
+      UpdateTaskPage(todo: todo)
     }
   }
 }

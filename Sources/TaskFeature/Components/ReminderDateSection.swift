@@ -1,12 +1,12 @@
 import Styleguide
 import SwiftUI
 
-struct RemindDateSection: View {
+struct ReminderDateSection: View {
   @Binding var showNotificationModal: Bool
   @FocusState var focused: Bool
 
   var body: some View {
-    VStack {
+    Section {
       Button {
         focused = false
       } label: {
@@ -24,9 +24,6 @@ struct RemindDateSection: View {
           Spacer()
         }
       }
-
-      Divider()
-        .padding(.trailing, -Padding.xSmall)
 
       Button {
         focused = false
@@ -48,10 +45,5 @@ struct RemindDateSection: View {
       }
     }
     .foregroundColor(Color.Label.primary)
-    .padding(Padding.small)
-    .background(Color.Background.secondary)
-    .clipShape(
-      RoundedRectangle(cornerRadius: 8)
-    )
   }
 }

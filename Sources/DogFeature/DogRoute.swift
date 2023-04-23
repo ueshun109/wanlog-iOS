@@ -8,5 +8,5 @@ public enum DogRoute: Route, Equatable {
 }
 
 public enum DogDetailRoute: Route {
-  case tasks(Query.NormalTask?)
+  case tasks(Query.Todo?)
 }

@@ -4,6 +4,7 @@ public extension Color {
   struct Background {
     public static let primary = Color("Background/Primary", bundle: .module)
     public static let secondary = Color("Background/Secondary", bundle: .module)
+    public static let tertiary = Color("Background/Tertiary", bundle: .module)
   }
 
   struct Blue {
@@ -24,6 +25,14 @@ public extension Color {
     public static let secondary = Color("Label/Secondary", bundle: .module)
     public static let tertiary = Color("Label/Tertiary", bundle: .module)
     public static let quaternary = Color("Label/Quaternary", bundle: .module)
+  }
+
+  struct Red {
+    public static let primary = Color("Red/Primary", bundle: .module)
+  }
+
+  struct Yellow {
+    public static let primary = Color("Yellow/Primary", bundle: .module)
   }
 
   struct Separator {

@@ -44,5 +44,23 @@ class ReminderDateTests: XCTestCase {
     let expectedDate = calendar.date(byAdding: .day, value: -3, to: now)!
     XCTAssertEqual(date, expectedDate)
   }
+
+  func testInit() {
+    let start = Date(timeIntervalSince1970: 1677794400)
+    let tenMinutesAgo = Date(timeIntervalSince1970: 1677795000)
+    let oneHourAgo = Date(timeIntervalSince1970: 1677798000)
+    let oneDayAgo = Date(timeIntervalSince1970: 1677880800)
+    let twoDaysAgo = Date(timeIntervalSince1970: 1677967200)
+    let threeDaysAgo = Date(timeIntervalSince1970: 1678053600)
+    let invalid = Date(timeIntervalSince1970: 1645426800)
+
+    XCTAssertEqual(ReminderDate(lhs: start, rhs: start), .atStart)
+    XCTAssertEqual(ReminderDate(lhs: start, rhs: tenMinutesAgo), .tenMinutesAgo)
+    XCTAssertEqual(ReminderDate(lhs: start, rhs: oneHourAgo), .oneHourAgo)
+    XCTAssertEqual(ReminderDate(lhs: start, rhs: oneDayAgo), .oneDayAgo)
+    XCTAssertEqual(ReminderDate(lhs: start, rhs: twoDaysAgo), .twoDaysAgo)
+    XCTAssertEqual(ReminderDate(lhs: start, rhs: threeDaysAgo), .threeDaysAgo)
+    XCTAssertNil(ReminderDate(lhs: start, rhs: invalid))
+  }
 }
 

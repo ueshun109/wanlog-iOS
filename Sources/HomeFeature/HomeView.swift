@@ -6,7 +6,7 @@ import Core
 public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
   @State private var uid: String?
   @State private var certificateQuery: Query.Certificate?
-  @State private var normalTaskQuery: Query.NormalTask?
+  @State private var todoQuery: Query.Todo?
 
   private let authenticator: Authenticator = .live
   private let router: Router
@@ -24,7 +24,7 @@ public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
   public var body: some View {
     TabView {
       NavigationView {
-        if let query = normalTaskQuery {
+        if let query = todoQuery {
           router.view(for: .taskList(query))
             .navigationTitle(Text("予定"))
         } else {
@@ -65,7 +65,7 @@ public struct HomeView<Router: Routing>: View where Router._Route == HomeRoute {
     }
     .task {
       self.uid = await authenticator.user()?.uid ?? ""
-      self.normalTaskQuery = .all(uid: uid!)
+      self.todoQuery = .all(uid: uid!)
       self.certificateQuery = .all(uid: uid!)
     }
   }

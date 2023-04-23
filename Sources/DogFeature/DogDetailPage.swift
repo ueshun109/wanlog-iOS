@@ -57,7 +57,7 @@ public struct DogDetailPage<Router: Routing>: View where Router._Route == DogDet
 
         VStack(spacing: Padding.small) {
           TaskSection() {
-            route = .tasks(Query.NormalTask.perDog(uid: uid, dogId: dog.id!))
+            route = .tasks(Query.Todo.perDog(uid: uid, dogId: dog.id!))
           }
 
           Divider()

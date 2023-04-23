@@ -53,6 +53,7 @@ public struct WithFIRQuery<T, Success: View, Failure: View>: View where T: Decod
         }
         .onAppear {
           guard listenTask == nil else { return }
+          guard case .idle = loadingState else { return }
           listenTask = Task { await update(with: query) }
         }
       }

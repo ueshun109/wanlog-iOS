@@ -1,108 +1,25 @@
+import Core
 import FirebaseFirestore
 import FirebaseFirestoreSwift
 
-public protocol Todo: Codable, Equatable, Identifiable {
-  /// Id
-  var id: String? { get }
+public struct Todo: Codable, Equatable, Identifiable {
+  /// Identifier
+  @DocumentID public var id: String?
   /// Content
-  var content: String { get }
+  public var content: String
   /// Whether the appointment is completed
-  var complete: Bool { get }
+  public var complete: Bool
   /// Which dog is this task for
-  var dogId: String { get }
+  public var dogId: String
   /// Expired date
-  var expiredDate: Timestamp { get }
+  public var expiredDate: Timestamp
   /// Supplementary matter
-  var memo: String? { get }
-  /// Dog owner id.
-  var ownerId: String { get }
-  /// Priority
-  var priority: Priority { get }
-  /// Date for reminder
-  var reminderDate: [Timestamp]? { get }
-}
-
-public extension Todo {
-  var memo: String? { nil }
-  var reminderDate: [Timestamp]? { nil }
-}
-
-public typealias ConvinienceTask = (
-  complete: Bool,
-  dogId: String,
-  expiredDate: Timestamp,
-  notificationDate: [Timestamp],
-  ownerId: String
-)
-
-public struct RequiredTask: Todo {
-  @DocumentID public var id: String?
-  public var content: String
-  public var complete: Bool
-  public var dogId: String
-  public var expiredDate: Timestamp
-  public var ownerId: String
-  public var priority: Priority
-
-  public init(
-    content: String,
-    complete: Bool,
-    dogId: String,
-    expiredDate: Timestamp,
-    ownerId: String,
-    priority: Priority
-  ) {
-    self.content = content
-    self.complete = complete
-    self.dogId = dogId
-    self.expiredDate = expiredDate
-    self.ownerId = ownerId
-    self.priority = priority
-  }
-
-  public static let combinationVaccine: (ConvinienceTask) -> RequiredTask = { task in
-    .init(
-      content: "混合ワクチン接種",
-      complete: task.complete,
-      dogId: task.dogId,
-      expiredDate: task.expiredDate,
-      ownerId: task.ownerId,
-      priority: .high
-    )
-  }
-
-  public static let filariasisDosing: (ConvinienceTask) -> RequiredTask = { task in
-    .init(
-      content: "フィラリア症予防薬投与",
-      complete: task.complete,
-      dogId: task.dogId,
-      expiredDate: task.expiredDate,
-      ownerId: task.ownerId,
-      priority: .high
-    )
-  }
-
-  public static let rabiesVaccine: (ConvinienceTask) -> RequiredTask = { task in
-    .init(
-      content: "狂犬病ワクチン接種",
-      complete: task.complete,
-      dogId: task.dogId,
-      expiredDate: task.expiredDate,
-      ownerId: task.ownerId,
-      priority: .high
-    )
-  }
-}
-
-public struct NormalTask: Todo {
-  @DocumentID public var id: String?
-  public var content: String
-  public var complete: Bool
-  public var dogId: String
-  public var expiredDate: Timestamp
   public var memo: String?
+  /// Dog owner identifier
   public var ownerId: String
+  /// Priority
   public var priority: Priority
+  /// Date for reminder
   public var reminderDate: [Timestamp]?
 
   public init(
@@ -126,18 +43,61 @@ public struct NormalTask: Todo {
     self.priority = priority
     self.reminderDate = reminderDate
   }
+}
 
-  public static let fakes: [NormalTask] = [
+public extension Todo {
+  typealias ConvinienceObject = (
+    complete: Bool,
+    dogId: String,
+    expiredDate: Timestamp,
+    notificationDate: [Timestamp],
+    ownerId: String
+  )
+
+  static let combinationVaccine: (ConvinienceObject) -> Todo = { task in
     .init(
-      content: "Normal Task 1",
+      content: "混合ワクチン接種",
+      complete: task.complete,
+      dogId: task.dogId,
+      expiredDate: task.expiredDate,
+      ownerId: task.ownerId,
+      priority: .special
+    )
+  }
+
+  static let filariasisDosing: (ConvinienceObject) -> Todo = { task in
+    .init(
+      content: "フィラリア症予防薬投与",
+      complete: task.complete,
+      dogId: task.dogId,
+      expiredDate: task.expiredDate,
+      ownerId: task.ownerId,
+      priority: .high
+    )
+  }
+
+  static let rabiesVaccine: (ConvinienceObject) -> Todo = { task in
+    .init(
+      content: "狂犬病ワクチン接種",
+      complete: task.complete,
+      dogId: task.dogId,
+      expiredDate: task.expiredDate,
+      ownerId: task.ownerId,
+      priority: .high
+    )
+  }
+
+  static let fakes: [Todo] = [
+    .init(
+      content: "Task 1",
       complete: false,
       dogId: "",
       expiredDate: .init(date: Date()),
       ownerId: "",
-      priority: .high
+      priority: .medium
     ),
     .init(
-      content: "Normal Task 2",
+      content: "Task 2",
       complete: false,
       dogId: "",
       expiredDate: .init(date: Date()),
@@ -145,4 +105,57 @@ public struct NormalTask: Todo {
       priority: .medium
     ),
   ]
+}
+
+// MARK: - Helper method for expired
+
+public extension Todo {
+  /// Whether the expiration date has expired or not.
+  /// - Parameter date: Date to be compared.
+  /// - Returns: Returns true if expired.
+  func expired(date: Date = .now) -> Bool {
+    let timeInterval: Int64 = expiredDate.seconds - Int64(date.timeIntervalSince1970)
+    logger.debug(message: "expiredDate: \(expiredDate.seconds), now: \(Int64(date.timeIntervalSince1970))")
+    logger.debug(message: "timeInterval: \(timeInterval)")
+    return timeInterval < 0
+  }
+
+  /// Whether it should be brought to our attention.
+  /// - Parameter date: Date.
+  /// - Returns: Returns true if attention is given.
+  func shouldAttention(date: Date = .now) -> Bool {
+    let timeInterval: Int64 = expiredDate.seconds - Int64(date.timeIntervalSince1970)
+    let within24Hours = timeInterval > 0 && timeInterval <= 60 * 60 * 24
+    return priority == .high && within24Hours
+  }
+
+  /// Whether the deadline is within 24 hours.
+  /// - Parameter date: Date to be compared.
+  /// - Returns: Returns true if deadline is within 24 hours.
+  func within24Hours(date: Date = .now) -> Bool {
+    let timeInterval: Int64 = expiredDate.seconds - Int64(date.timeIntervalSince1970)
+    return timeInterval > 0 && timeInterval <= 60 * 60 * 24
+  }
+}
+
+ // MARK: - Helper methods for array
+
+public extension [Todo] {
+  mutating func removedCompleted() -> [Todo] {
+    let removed = self.filter { $0.complete }
+    self = self.filter { !$0.complete }
+    return removed
+  }
+
+  mutating func removedWithin24Hours(_ now: Date = .now) -> [Todo] {
+    let removed = self.filter { $0.within24Hours(date: now) }
+    self = self.filter { !$0.within24Hours(date: now) }
+    return removed
+  }
+
+  mutating func removedExpired(_ now: Date = .now) -> [Todo] {
+    let removed = self.filter { $0.expired(date: now) }
+    self = self.filter { !$0.expired(date: now) }
+    return removed
+  }
 }

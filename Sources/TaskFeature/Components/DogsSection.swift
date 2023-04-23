@@ -8,7 +8,7 @@ struct DogsSection: View {
   let dogs: Set<Dog>
 
   var body: some View {
-    VStack {
+    Section {
       Button {
         focused = false
         showDogsModal = true
@@ -34,10 +34,5 @@ struct DogsSection: View {
       }
     }
     .foregroundColor(Color.Label.primary)
-    .padding(Padding.small)
-    .background(Color.Background.secondary)
-    .clipShape(
-      RoundedRectangle(cornerRadius: 8)
-    )
   }
 }

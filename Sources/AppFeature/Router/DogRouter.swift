@@ -20,7 +20,7 @@ struct DogDetailRouter: Routing {
   func view(for route: DogDetailRoute) -> some View {
     switch route {
     case .tasks(let query):
-      TaskListPage(normalTaskQuery: query, router: TaskRouter())
+      TodoListPage(todoQuery: query, router: TodoRouter())
     }
   }
 }

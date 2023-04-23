@@ -132,17 +132,18 @@ public struct EnterButtonStyleThirdly: ButtonStyle {
 }
 
 public struct SmallButtonStyle: ButtonStyle {
+  @Environment(\.colorScheme) var colorScheme
   public init() {}
 
   public func makeBody(configuration: Configuration) -> some View {
     configuration.label
       .font(.subheadline)
-      .foregroundColor(.white)
+      .foregroundColor(colorScheme == .dark ? .black : .white)
       .padding(.vertical, Padding.xSmall)
       .padding(.horizontal, Padding.medium)
       .background(
         RoundedRectangle(cornerRadius: 24, style: .continuous)
-          .fill(.black)
+          .fill(colorScheme == .dark ? .white : .black)
       )
       .opacity(configuration.isPressed ? 0.9 : 1)
   }

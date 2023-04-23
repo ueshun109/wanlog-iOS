@@ -8,16 +8,10 @@ struct TaskSection: View {
   @State private var openDatePicker = false
 
   var body: some View {
-    VStack {
-      toggle
-      Divider().padding(.trailing, -Padding.xSmall)
+    Section {
       datePicker
+      toggle
     }
-    .padding(Padding.small)
-    .background(Color.Background.secondary)
-    .clipShape(
-      RoundedRectangle(cornerRadius: 8)
-    )
   }
 
   private var toggle: some View {
@@ -34,40 +28,39 @@ struct TaskSection: View {
     }
   }
 
+  @ViewBuilder
   private var datePicker: some View {
-    VStack {
-      Button {
-        focused = false
-        withAnimation {
-          openDatePicker.toggle()
-        }
-      } label: {
-        HStack {
-          Image.calendar
-            .resizable()
-            .frame(width: 16, height: 16)
-            .foregroundColor(.white)
-            .padding(6)
-            .background(.red)
-            .cornerRadius(6)
-
-          VStack(alignment: .leading) {
-            Text("期日")
-            Text(expiredDate.formatted(date: .complete, time: allDay ? .omitted : .shortened))
-          }
-          Spacer()
-        }
+    Button {
+      focused = false
+      withAnimation {
+        openDatePicker.toggle()
       }
-      .foregroundColor(Color.Label.primary)
+    } label: {
+      HStack {
+        Image.calendar
+          .resizable()
+          .frame(width: 16, height: 16)
+          .foregroundColor(.white)
+          .padding(6)
+          .background(.red)
+          .cornerRadius(6)
 
-      if openDatePicker {
-        DatePicker(
-          selection: $expiredDate,
-          displayedComponents: datePickerComponents(allDay: allDay)
-        ) {
+        VStack(alignment: .leading) {
+          Text("期日")
+          Text(expiredDate.formatted(date: .complete, time: allDay ? .omitted : .shortened))
         }
-        .datePickerStyle(.graphical)
+        Spacer()
       }
+    }
+    .foregroundColor(Color.Label.primary)
+
+    if openDatePicker {
+      DatePicker(
+        selection: $expiredDate,
+        displayedComponents: datePickerComponents(allDay: allDay)
+      ) {
+      }
+      .datePickerStyle(.graphical)
     }
   }
 

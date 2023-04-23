@@ -6,7 +6,7 @@ public enum Query {
   case certificate(Certificate)
   case dog(Dog)
   case owner
-  case normalTask(NormalTask)
+  case todo(Todo)
 
   public enum Certificate {
     case all(uid: String)
@@ -113,7 +113,7 @@ public enum Query {
     }
   }
 
-  public enum NormalTask {
+  public enum Todo {
     case all(uid: String)
     case perDog(uid: String, dogId: String)
     case one(uid: String, dogId: String, taskId: String)
@@ -130,7 +130,7 @@ public enum Query {
           .document(uid)
           .collection("dogs")
           .document(dogId)
-          .collection("normalTasks")
+          .collection("todos")
       }
     }
 
@@ -146,7 +146,7 @@ public enum Query {
           .document(uid)
           .collection("dogs")
           .document(dogId)
-          .collection("normalTasks")
+          .collection("todos")
           .document(taskId)
       }
     }
@@ -160,15 +160,15 @@ public enum Query {
       switch self {
       case .all(let uid):
         if incompletedOnly {
-          return db.collectionGroup("normalTasks")
+          return db.collectionGroup("todos")
             .whereField("ownerId", isEqualTo: uid)
             .whereField("complete", isEqualTo: false)
-            .order(by: "reminderDate", descending: false)
+            .order(by: "expiredDate", descending: false)
         } else {
-          return db.collectionGroup("normalTasks")
+          return db.collectionGroup("todos")
             .whereField("ownerId", isEqualTo: uid)
             .order(by: "complete", descending: false)
-            .order(by: "reminderDate", descending: false)
+            .order(by: "expiredDate", descending: false)
         }
       case let .perDog(uid, dogId):
         if incompletedOnly {
@@ -177,18 +177,18 @@ public enum Query {
             .document(uid)
             .collection("dogs")
             .document(dogId)
-            .collection("normalTasks")
+            .collection("todos")
             .whereField("complete", isEqualTo: false)
-            .order(by: "reminderDate", descending: false)
+            .order(by: "expiredDate", descending: false)
         } else {
           return db
             .collection("owners")
             .document(uid)
             .collection("dogs")
             .document(dogId)
-            .collection("normalTasks")
+            .collection("todos")
             .order(by: "complete", descending: false)
-            .order(by: "reminderDate", descending: false)
+            .order(by: "expiredDate", descending: false)
         }
       case .one:
         fatalError("Call the query function to get a single data")

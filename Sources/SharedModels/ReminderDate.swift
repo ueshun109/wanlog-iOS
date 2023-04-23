@@ -9,6 +9,26 @@ public struct ReminderDate: Equatable, Hashable, Identifiable {
     self.title = title
   }
 
+  public init?(lhs: Date, rhs: Date) {
+    let interval = lhs.timeIntervalSince(rhs)
+    switch abs(interval) {
+    case 0:
+      self = .atStart
+    case 60 * 10:
+      self = .tenMinutesAgo
+    case 60 * 60:
+      self = .oneHourAgo
+    case 60 * 60 * 24:
+      self = .oneDayAgo
+    case 60 * 60 * 24 * 2:
+      self = .twoDaysAgo
+    case 60 * 60 * 24 * 3:
+      self = .threeDaysAgo
+    default:
+      return nil
+    }
+  }
+
   public static let atStart: ReminderDate = .init(title: "開始時")
   public static let tenMinutesAgo: ReminderDate = .init(title: "10分前")
   public static let oneHourAgo: ReminderDate = .init(title: "1時間前")

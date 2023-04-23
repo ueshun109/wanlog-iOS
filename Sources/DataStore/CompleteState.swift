@@ -4,66 +4,78 @@ import FirebaseClient
 import SharedModels
 
 @MainActor
+/// Manage todo completion status.
 public class CompleteState: ObservableObject {
   public typealias ID = String
   private let db = Firestore.firestore()
-  @Published public private(set) var completes: [ID: NormalTask] = [:]
+  @Published public private(set) var completes: [ID: Todo] = [:]
 
   public init() {}
+}
 
-  public func contains(_ id: ID) -> Bool {
+// MARK: - Public methods
+
+public extension CompleteState {
+  /// Update status of todos related to the id
+  /// - Parameter id: todo id
+  /// - Returns: Return true if complete.
+  func status(of id: String?) -> Bool {
+    guard let id = id else { return false }
+    return completes[id]?.complete ?? false
+  }
+
+  /// Change a todo to complete if todo is complete.
+  func toComplete() async throws {
+    let targets: [(data: Todo, reference: DocumentReference)]
+    targets = completes.values.compactMap { todo in
+      guard let id = todo.id else { return nil }
+      let query: Query.Todo = .one(uid: todo.ownerId, dogId: todo.dogId, taskId: id)
+      return (data: todo, reference: query.document())
+    }
+    try await db.updates(targets)
+    completes.removeAll()
+  }
+
+  func update(original: Todo, updated: Todo) async throws {
+    guard let id = original.id else { return }
+    let completed = original.complete && !contains(id)
+    if completed {
+      try await toIncomplete(original)
+    } else {
+      updateDraftStatus(todo: updated, id: id)
+    }
+  }
+}
+
+// MARK: - Private methods
+
+private extension CompleteState {
+  /// Whether it is included in the provisional update status.
+  /// - Parameter id: id
+  /// - Returns: Return true if included.
+  func contains(_ id: ID) -> Bool {
     completes.contains(where: { $0.key == id })
   }
 
-  public func save() async {
-    let targets: [(data: NormalTask, reference: DocumentReference)] = completes.values.compactMap { task in
-      guard let id = task.id else { return nil }
-      let query: Query.NormalTask = .one(uid: task.ownerId, dogId: task.dogId, taskId: id)
-      return (
-        data: task,
-        reference: query.document()
-      )
-    }
-    do {
-      try await db.updates(targets)
-      completes.removeAll()
-    } catch {
-      logger.error(message: error)
-    }
-  }
-
-  public func update(_ id: String, task: NormalTask) {
-//    guard !schedule.complete else {
-//      toIncomplete(schedule)
-//      return
-//    }
-//    let existed = completes.contains(where: { scheduleId, _ in
-//      scheduleId == id
-//    })
-//    if existed {
-//      completes.removeValue(forKey: id)
-//    } else {
-//      completes[id] = schedule
-//    }
-    logger.debug(message: task.complete)
-    if task.complete {
-      completes[id] = task
-    } else {
-      completes.removeValue(forKey: id)
-    }
-  }
-
-  /// Change a schedule to incomplete if schedue is complete.
+  /// Change a schedule to incomplete if todo is complete.
   /// - Parameter schedule: `Schedule`
-  public func toIncomplete(_ task: NormalTask) async throws {
-    guard task.complete, let id = task.id else { return }
-    let query: Query.NormalTask = .one(uid: task.ownerId, dogId: task.dogId, taskId: id)
-    var new = task
+  func toIncomplete(_ todo: Todo) async throws {
+    guard todo.complete, let id = todo.id else { return }
+    let query: Query.Todo = .one(uid: todo.ownerId, dogId: todo.dogId, taskId: id)
+    var new = todo
     new.complete = false
     try await db.set(new, documentReference: query.document())
   }
 
-  public func status(of id: String) -> Bool? {
-    completes[id]?.complete
+  /// Tentatively update completion status.
+  /// - Parameters:
+  ///   - todo: update target
+  ///   - id: update target id
+  func updateDraftStatus(todo: Todo, id: String) {
+    if todo.complete {
+      completes[id] = todo
+    } else {
+      completes.removeValue(forKey: id)
+    }
   }
 }
