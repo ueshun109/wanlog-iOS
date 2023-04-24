@@ -61,7 +61,7 @@ public extension Todo {
       dogId: task.dogId,
       expiredDate: task.expiredDate,
       ownerId: task.ownerId,
-      priority: .special
+      priority: .high
     )
   }
 

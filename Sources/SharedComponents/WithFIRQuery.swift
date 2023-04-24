@@ -6,21 +6,32 @@ import SwiftUI
 
 /// WithFIRQuery is a component that determines the displayed content according to the load status.
 public struct WithFIRQuery<T, Success: View, Failure: View>: View where T: Decodable, T: Equatable {
+  @Binding private var nextPage: Int
+  @Binding private var hasMore: Bool
   @State private var loadingState: LoadingState<[T]>
   @State private var listenTask: Task<Void, Never>?
+  private let basePageSize: Int
   private let db = Firestore.firestore()
   private let query: FirebaseFirestore.Query?
+  private let skelton: [T]
   private let onSuccess: ([T]) -> Success
   private let onFailure: (LoadingError) -> Failure
 
   public init(
     skeleton: [T],
     query: FirebaseFirestore.Query?,
+    nextPage: Binding<Int> = .constant(0),
+    hasMore: Binding<Bool> = .constant(false),
+    basePageSize: Int = 100,
     @ViewBuilder onSuccess: @escaping ([T]) -> Success,
     @ViewBuilder onFailure: @escaping (LoadingError) -> Failure
   ) {
+    self._nextPage = nextPage
+    self._hasMore = hasMore
     self.loadingState = .idle(skeleton: skeleton)
     self.query = query
+    self.basePageSize = basePageSize
+    self.skelton = skeleton
     self.onSuccess = onSuccess
     self.onFailure = onFailure
   }
@@ -53,7 +64,6 @@ public struct WithFIRQuery<T, Success: View, Failure: View>: View where T: Decod
         }
         .onAppear {
           guard listenTask == nil else { return }
-          guard case .idle = loadingState else { return }
           listenTask = Task { await update(with: query) }
         }
       }
@@ -62,9 +72,16 @@ public struct WithFIRQuery<T, Success: View, Failure: View>: View where T: Decod
   }
 
   private func update(with query: FirebaseFirestore.Query) async {
+    let firstLoading = nextPage == 1
+    if firstLoading {
+      self.loadingState = .loading(skeleton: skelton)
+      // This is a workaround for additional loading when display conditions change.
+      try! await Task.sleep(nanoseconds: 1_000_000_000)
+    }
     do {
       for try await data in db.listen(query, type: T.self) {
-        logger.debug(message: data)
+        hasMore = basePageSize * nextPage == data.count
+        if hasMore { nextPage += 1 }
         withAnimation {
           self.loadingState = .loaded(data: data)
         }

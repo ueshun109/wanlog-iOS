@@ -155,7 +155,7 @@ public enum Query {
     /// - Parameters:
     ///   - incompletedOnly: Whether to get only incompleted tasks.
     /// - Returns: `Query`
-    public func query(incompletedOnly: Bool = true) -> FirebaseFirestore.Query {
+    public func query(incompletedOnly: Bool = true, limit: Int) -> FirebaseFirestore.Query {
       let db = Firestore.firestore()
       switch self {
       case .all(let uid):
@@ -164,11 +164,13 @@ public enum Query {
             .whereField("ownerId", isEqualTo: uid)
             .whereField("complete", isEqualTo: false)
             .order(by: "expiredDate", descending: false)
+            .limit(to: limit)
         } else {
           return db.collectionGroup("todos")
             .whereField("ownerId", isEqualTo: uid)
-            .order(by: "complete", descending: false)
+            .order(by: "complete", descending: true)
             .order(by: "expiredDate", descending: false)
+            .limit(to: limit)
         }
       case let .perDog(uid, dogId):
         if incompletedOnly {
@@ -180,6 +182,7 @@ public enum Query {
             .collection("todos")
             .whereField("complete", isEqualTo: false)
             .order(by: "expiredDate", descending: false)
+            .limit(to: limit)
         } else {
           return db
             .collection("owners")
@@ -189,6 +192,7 @@ public enum Query {
             .collection("todos")
             .order(by: "complete", descending: false)
             .order(by: "expiredDate", descending: false)
+            .limit(to: limit)
         }
       case .one:
         fatalError("Call the query function to get a single data")

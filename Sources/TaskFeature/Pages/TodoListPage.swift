@@ -9,6 +9,10 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
   private struct UiState {
     /// Dog images.
     var dogImages: [String?: UIImage] = [:]
+    /// Pagination page.
+    var nextPage = 1
+    /// Whether has next page.
+    var hasMore = false
     /// Flag for whether to push transition.
     var pushTransition: Bool = false
     /// Firestore query.
@@ -24,6 +28,7 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
   private let authenticator: Authenticator = .live
   private let db = Firestore.firestore()
   private let getDogList = DogUsecase.getDogList
+  private let basePageSize = 100
   private let router: Router
   private let todoQuery: Query.Todo?
   private let storage: Storage = .storage()
@@ -54,12 +59,15 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
   public var body: some View {
     WithFIRQuery(
       skeleton: Todo.fakes,
-      query: uiState.query
+      query: uiState.query,
+      nextPage: $uiState.nextPage,
+      hasMore: $uiState.hasMore,
+      basePageSize: basePageSize
     ) { data in
       // TODO: データが空の場合は、それ用のViewを表示すること
       ZStack(alignment: .top) {
         list(todos: data)
-        footer
+        doneButton
       }
     } onFailure: { error in
       Text("error")
@@ -84,11 +92,15 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
       onDismiss: nil
     )
     .onChange(of: uiState.showOnlyIncompleted) { value in
-      Task { uiState.query = todoQuery?.query(incompletedOnly: value) }
+      uiState.hasMore = false
+      uiState.nextPage = 1
+      Task {
+        uiState.query = todoQuery?.query(incompletedOnly: value, limit: basePageSize)
+      }
     }
     .task {
       guard uiState.query == nil else { return }
-      uiState.query = todoQuery?.query(incompletedOnly: true)
+      uiState.query = todoQuery?.query(incompletedOnly: true, limit: basePageSize)
       uiState.uid = await authenticator.user()?.uid ?? ""
       do {
         let dogs = try await getDogList()
@@ -105,72 +117,88 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
   /// 📖 View to display a list of Todo.
   func list(todos: [Todo]) -> some View {
     var _todos = todos
+    let lastItem = todos.last
     let completed = uiState.showOnlyIncompleted ? [] : _todos.removedCompleted()
     let expired = _todos.removedExpired()
     let high = _todos.filter { $0.shouldAttention() }
     let normal = _todos.filter { !$0.shouldAttention() }
     return List {
-      completedSection(todos: completed)
-      expiredSection(todos: expired)
-      highPrioritySection(todos: high)
-      normalPrioritySection(todos: normal)
+      if !uiState.showOnlyIncompleted {
+        completedSection(todos: completed, lastItem: lastItem)
+      }
+      expiredSection(todos: expired, lastItem: lastItem)
+      highPrioritySection(todos: high, lastItem: lastItem)
+      normalPrioritySection(todos: normal, lastItem: lastItem)
     }
     .listStyle(.insetGrouped)
   }
 
   @ViewBuilder
   /// ✅ A section that represents a list of completed todo's.
-  func completedSection(todos: [Todo]) -> some View {
+  func completedSection(todos: [Todo], lastItem: Todo?) -> some View {
     if todos.isEmpty {
       EmptyView()
     } else {
       Section {
-        contents(todos: todos)
+        contents(todos: todos, lastItem: lastItem)
       } header: {
         header(section: .completed)
+      } footer: {
+        footer(showProgress: todos.last == lastItem && uiState.hasMore)
       }
     }
   }
 
   @ViewBuilder
   /// 🔴 A section that represents a list of expired todo's.
-  func expiredSection(todos: [Todo]) -> some View {
+  func expiredSection(todos: [Todo], lastItem: Todo?) -> some View {
     if todos.isEmpty {
       EmptyView()
     } else {
       Section {
-        contents(todos: todos)
+        contents(todos: todos, lastItem: lastItem)
       } header: {
         header(section: .expired)
+      } footer: {
+        footer(showProgress: todos.last == lastItem && uiState.hasMore)
       }
     }
   }
 
   @ViewBuilder
   /// 🟡 A section that represents a list of high priority todo's.
-  func highPrioritySection(todos: [Todo]) -> some View {
+  func highPrioritySection(todos: [Todo], lastItem: Todo?) -> some View {
     if todos.isEmpty {
       EmptyView()
     } else {
       Section {
-        contents(todos: todos)
+        contents(todos: todos, lastItem: lastItem)
       } header: {
         header(section: .highPriority)
+      } footer: {
+        footer(showProgress: todos.last == lastItem && uiState.hasMore)
       }
     }
   }
 
+  @ViewBuilder
   /// 🟢 A section that represents a list of middle or low priority todo's.
-  func normalPrioritySection(todos: [Todo]) -> some View {
-    Section {
-      contents(todos: todos)
-    } header: {
-      header(section: .normal)
+  func normalPrioritySection(todos: [Todo], lastItem: Todo?) -> some View {
+    if todos.isEmpty {
+      EmptyView()
+    } else {
+      Section {
+        contents(todos: todos, lastItem: lastItem)
+      } header: {
+        header(section: .normal)
+      } footer: {
+        footer(showProgress: todos.last == lastItem && uiState.hasMore)
+      }
     }
   }
 
   /// 📄 List items.
-  func contents(todos: [Todo]) -> some View {
+  func contents(todos: [Todo], lastItem: Todo?) -> some View {
     ForEach(todos) { todo in
       // If the TODO has already been completed, the completed status is used; if not, the tentative status is used.
       let complete = todo.complete ? todo.complete : completeState.status(of: todo.id)
@@ -191,6 +219,18 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
           Text("詳細")
         }
       }
+      .task {
+        let displayLastItemInSection = todos.last == todo
+        let displayLastItemInAll = lastItem == todo
+        guard displayLastItemInSection, displayLastItemInAll, uiState.hasMore else {
+          logger.debug(message: "additional: \(displayLastItemInSection), \(displayLastItemInAll), \(uiState.hasMore)")
+          return
+        }
+        uiState.query = todoQuery?.query(
+          incompletedOnly: uiState.showOnlyIncompleted,
+          limit: basePageSize * uiState.nextPage
+        )
+      }
     }
   }
 
@@ -205,7 +245,18 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
   }
 
   /// 🪝Footer
-  var footer: some View {
+  func footer(showProgress: Bool) -> some View {
+    HStack {
+      Spacer()
+      if showProgress {
+        ProgressView()
+      }
+      Spacer()
+    }
+  }
+
+  /// 💯 Done button
+  var doneButton: some View {
     VStack {
       Spacer()
       if !completeState.completes.isEmpty {
