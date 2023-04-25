@@ -17,6 +17,14 @@ public struct LoadingError: LocalizedError, Equatable {
     self.recoverySuggestion = recoverySuggestion
     self.recoveryAction = recoveryAction
   }
+
+  public init(error: Error) {
+    if let error = error as? LoadingError {
+      self = error
+    } else {
+      self = LoadingError(errorDescription: error.localizedDescription)
+    }
+  }
 }
 
 public enum RecoveryAction {

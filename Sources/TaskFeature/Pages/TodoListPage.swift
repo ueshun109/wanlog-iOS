@@ -7,6 +7,7 @@ import SwiftUI
 
 public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRoute {
   private struct UiState {
+    var error: LoadingError?
     /// Dog images.
     var dogImages: [String?: UIImage] = [:]
     /// Pagination page.
@@ -17,6 +18,8 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
     var pushTransition: Bool = false
     /// Firestore query.
     var query: FirebaseFirestore.Query?
+    /// Show alert.
+    var showAlert = false
     /// Show only incompleted task if `true`
     var showOnlyIncompleted = true
     /// Flag for whether to modal transition.
@@ -83,6 +86,14 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
           Image.plusCircle
         }
       }
+    }
+    .alert(
+      isPresented: $uiState.showAlert,
+      error: uiState.error
+    ) { _ in
+      Button("OK") {}
+    } message: { error in
+      Text(error.recoverySuggestion ?? "")
     }
     .navigate(
       router: router,
@@ -213,11 +224,7 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
       }
       .padding(.trailing, Padding.small)
       .swipeActions(edge: .trailing) {
-        Button {
-          route = .detail(todo)
-        } label: {
-          Text("詳細")
-        }
+        swipeMenu(todo: todo)
       }
       .task {
         let displayLastItemInSection = todos.last == todo
@@ -231,6 +238,34 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
           limit: basePageSize * uiState.nextPage
         )
       }
+    }
+  }
+
+  @ViewBuilder
+  /// 👉 Swipe menu
+  func swipeMenu(todo: Todo) -> some View {
+    Button {
+      route = .detail(todo)
+    } label: {
+      Text("詳細")
+    }
+
+    Button(role: .destructive) {
+      guard let taskId = todo.id else { return }
+      let query = Query.Todo.one(uid: todo.ownerId, dogId: todo.dogId, taskId: taskId)
+      Task {
+        do {
+          try await db.remove(query.document())
+        } catch {
+          uiState.error = .init(
+            errorDescription: "削除に失敗しました",
+            recoverySuggestion: "時間を置いて再度お試しください。"
+          )
+          uiState.showAlert = true
+        }
+      }
+    } label: {
+      Text("削除")
     }
   }
 
@@ -274,6 +309,8 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
     .animation(.default, value: completeState.completes)
   }
 }
+
+// MARK: - TodoList section type
 
 extension TodoListPage {
   enum SectionType {
