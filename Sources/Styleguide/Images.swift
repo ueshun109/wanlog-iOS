@@ -25,5 +25,6 @@ public extension Image {
   static let photo = Self(systemName: "photo")
   static let plusCircle = Self(systemName: "plus.circle")
   static let `repeat` = Self(systemName: "repeat")
+  static let repeatCircle = Self(systemName: "repeat.circle")
   static let trash = Self(systemName: "trash")
 }

@@ -13,7 +13,7 @@ struct TaskListItemView: View {
   var body: some View {
     HStack {
       VStack(alignment: .leading, spacing: 12) {
-        HStack(spacing: Padding.xSmall) {
+        HStack(spacing: Padding.small) {
           CheckBox(checked: complete) { status in
             var new = todo
             new.complete = status
@@ -25,10 +25,20 @@ struct TaskListItemView: View {
             .foregroundColor(Color.Label.primary)
         }
 
-        HStack(spacing: Padding.xSmall) {
-          Image.clock
-            .resizable()
-            .frame(width: 16, height: 16)
+        HStack(spacing: Padding.small) {
+          HStack(spacing: Padding.xSmall) {
+            if todo.repeatDate != nil {
+              Image.repeatCircle
+                .resizable()
+                .frame(width: 16, height: 16)
+                .foregroundColor(Color.Yellow.primary)
+            }
+
+            Image.clock
+              .resizable()
+              .frame(width: 16, height: 16)
+          }
+
           Text(toString(todo.expiredDate.dateValue(), formatter: .yearAndMonthAndDayWithSlash))
             .font(.subheadline)
         }
