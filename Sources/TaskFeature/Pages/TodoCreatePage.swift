@@ -13,11 +13,13 @@ public struct TodoCreatePage: View {
     var memo: String = ""
     var ownerId: String = ""
     var priority: Priority = .medium
+    var repeatDate: RepeatDate?
     var reminderDate: Set<ReminderDate> = []
     var selectedDogs: Set<Dog> = []
     var showAlert = false
     var showDogsModal = false
     var showReminderDateModal = false
+    var showRpeatDate = false
     var title: String = ""
   }
 
@@ -51,9 +53,12 @@ public struct TodoCreatePage: View {
           focused: _focused
         )
 
-        ReminderDateSection(
-          showNotificationModal: $uiState.showReminderDateModal,
-          focused: _focused
+        DateSection(
+          showReminderDate: $uiState.showReminderDateModal,
+          showRepeatDate: $uiState.showRpeatDate,
+          focused: _focused,
+          selectedReminderDate: uiState.reminderDate,
+          selectedRepeatDate: uiState.repeatDate
         )
 
         SettingSection(
@@ -68,13 +73,16 @@ public struct TodoCreatePage: View {
         }
         .environment(\.editMode, .constant(.active))
       }
+      .halfModal(isShow: $uiState.showRpeatDate) {
+        SingleSelectionList(selection: $uiState.repeatDate, headerTitle: "繰り返し")
+      }
       .halfModal(isShow: $uiState.showReminderDateModal) {
-        ReminderDatePicker(reminderDate: $uiState.reminderDate)
+        MultiSelectionList(selections: $uiState.reminderDate, headerTitle: "リマインド通知")
       }
       .loading($uiState.loadingState, showAlert: $uiState.showAlert)
-      .background(Color.Background.primary)
       .navigationTitle("新規作成")
       .navigationBarTitleDisplayMode(.inline)
+      .background(Color.Background.primary)
       .toolbar {
         cancelButton
         saveButton
@@ -131,7 +139,13 @@ public struct TodoCreatePage: View {
 private extension TodoCreatePage {
   func todos() -> [Todo] {
     uiState.selectedDogs.map { dog in
-      Todo(
+      let repeatDate: Timestamp?
+      if let date = uiState.repeatDate?.date(uiState.expiredDate) {
+        repeatDate = .init(date: date)
+      } else {
+        repeatDate = nil
+      }
+      return Todo(
         content: uiState.title,
         complete: false,
         dogId: dog.id!,
@@ -139,7 +153,8 @@ private extension TodoCreatePage {
         memo: uiState.memo,
         ownerId: uiState.ownerId,
         priority: uiState.priority,
-        reminderDate: uiState.reminderDate.map { .init(date: $0.date(uiState.expiredDate)) }
+        reminderDate: uiState.reminderDate.map { .init(date: $0.date(uiState.expiredDate)) },
+        repeatDate: repeatDate
       )
     }
   }

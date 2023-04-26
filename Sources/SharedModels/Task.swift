@@ -21,6 +21,8 @@ public struct Todo: Codable, Equatable, Identifiable {
   public var priority: Priority
   /// Date for reminder
   public var reminderDate: [Timestamp]?
+  /// Repeat date
+  public var repeatDate: Timestamp?
 
   public init(
     id: String? = nil,
@@ -31,7 +33,8 @@ public struct Todo: Codable, Equatable, Identifiable {
     memo: String? = nil,
     ownerId: String,
     priority: Priority,
-    reminderDate: [Timestamp]? = nil
+    reminderDate: [Timestamp]? = nil,
+    repeatDate: Timestamp? = nil
   ) {
     self.id = id
     self.content = content
@@ -42,6 +45,7 @@ public struct Todo: Codable, Equatable, Identifiable {
     self.ownerId = ownerId
     self.priority = priority
     self.reminderDate = reminderDate
+    self.repeatDate = repeatDate
   }
 }
 

@@ -30,6 +30,7 @@ struct SettingSection: View {
           Spacer()
 
           Text(priority.title)
+            .foregroundColor(Color.Label.secondary)
         }
       }
       .foregroundColor(Color.Label.primary)

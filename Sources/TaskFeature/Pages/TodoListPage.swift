@@ -244,12 +244,6 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
   @ViewBuilder
   /// 👉 Swipe menu
   func swipeMenu(todo: Todo) -> some View {
-    Button {
-      route = .detail(todo)
-    } label: {
-      Text("詳細")
-    }
-
     Button(role: .destructive) {
       guard let taskId = todo.id else { return }
       let query = Query.Todo.one(uid: todo.ownerId, dogId: todo.dogId, taskId: taskId)
@@ -266,6 +260,12 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
       }
     } label: {
       Text("削除")
+    }
+
+    Button {
+      route = .detail(todo)
+    } label: {
+      Text("詳細")
     }
   }
 

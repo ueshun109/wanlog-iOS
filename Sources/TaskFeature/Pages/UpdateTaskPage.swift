@@ -1,4 +1,5 @@
 import FirebaseClient
+import SharedComponents
 import SharedModels
 import Styleguide
 import SwiftUI
@@ -47,9 +48,12 @@ public struct UpdateTaskPage: View {
           focused: _focused
         )
 
-        ReminderDateSection(
-          showNotificationModal: $uiState.showReminderDateModal,
-          focused: _focused
+        DateSection(
+          showReminderDate: $uiState.showReminderDateModal,
+          showRepeatDate: .constant(false),
+          focused: _focused,
+          selectedReminderDate: [],
+          selectedRepeatDate: nil
         )
 
         SettingSection(
@@ -59,8 +63,8 @@ public struct UpdateTaskPage: View {
       }
       .listStyle(.insetGrouped)
       .halfModal(isShow: $uiState.showReminderDateModal) {
-        ReminderDatePicker(reminderDate: $uiState.reminderDate)
-      } onEnd: { }
+        MultiSelectionList(selections: $uiState.reminderDate, headerTitle: "リマインド通知")
+      }
       .loading($uiState.loadingState, showAlert: $uiState.showAlert)
       .background(Color.Background.primary)
       .navigationTitle("詳細")

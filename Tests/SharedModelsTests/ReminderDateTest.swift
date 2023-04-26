@@ -5,44 +5,45 @@ class ReminderDateTests: XCTestCase {
   private let calendar = Calendar.current
 
   func testAtStart() {
-    let now = Date()
-    let date = ReminderDate.atStart.date(now)
-    XCTAssertEqual(now, date)
+    let now = Date(timeIntervalSince1970: 1677794400)
+    let expected = Date(timeIntervalSince1970: 1677794400)
+    let reminderDate: ReminderDate = .atStart
+    XCTAssertEqual(expected, reminderDate.date(now))
   }
 
   func testTenMinutesAgo() {
-    let now = Date()
-    let date = ReminderDate.tenMinutesAgo.date(now)
-    let expectedDate = calendar.date(byAdding: .minute, value: -10, to: now)!
-    XCTAssertEqual(date, expectedDate)
+    let now = Date(timeIntervalSince1970: 1677794400)
+    let expected = Date(timeIntervalSince1970: 1677793800)
+    let reminderDate: ReminderDate = .tenMinutesAgo
+    XCTAssertEqual(expected, reminderDate.date(now))
   }
 
   func testOneHourAgo() {
-    let now = Date()
-    let date = ReminderDate.oneHourAgo.date(now)
-    let expectedDate = calendar.date(byAdding: .hour, value: -1, to: now)!
-    XCTAssertEqual(date, expectedDate)
+    let now = Date(timeIntervalSince1970: 1677794400)
+    let expected = Date(timeIntervalSince1970: 1677790800)
+    let reminderDate: ReminderDate = .oneHourAgo
+    XCTAssertEqual(expected, reminderDate.date(now))
   }
 
   func testOneDayAgo() {
-    let now = Date()
-    let date = ReminderDate.oneDayAgo.date(now)
-    let expectedDate = calendar.date(byAdding: .day, value: -1, to: now)!
-    XCTAssertEqual(date, expectedDate)
+    let now = Date(timeIntervalSince1970: 1677794400)
+    let expected = Date(timeIntervalSince1970: 1677708000)
+    let reminderDate: ReminderDate = .oneDayAgo
+    XCTAssertEqual(expected, reminderDate.date(now))
   }
 
   func testTwoDaysAgo() {
-    let now = Date()
-    let date = ReminderDate.twoDaysAgo.date(now)
-    let expectedDate = calendar.date(byAdding: .day, value: -2, to: now)!
-    XCTAssertEqual(date, expectedDate)
+    let now = Date(timeIntervalSince1970: 1677794400)
+    let expected = Date(timeIntervalSince1970: 1677621600)
+    let reminderDate: ReminderDate = .twoDaysAgo
+    XCTAssertEqual(expected, reminderDate.date(now))
   }
 
   func testThreeDaysAgo() {
-    let now = Date()
-    let date = ReminderDate.threeDaysAgo.date(now)
-    let expectedDate = calendar.date(byAdding: .day, value: -3, to: now)!
-    XCTAssertEqual(date, expectedDate)
+    let now = Date(timeIntervalSince1970: 1677794400)
+    let expected = Date(timeIntervalSince1970: 1677535200)
+    let reminderDate: ReminderDate = .threeDaysAgo
+    XCTAssertEqual(expected, reminderDate.date(now))
   }
 
   func testInit() {
