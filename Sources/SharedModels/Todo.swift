@@ -122,18 +122,6 @@ public extension Todo {
     return timeInterval < 0
   }
 
-  /// Remove repeat setting.
-  ///
-  /// Repeat setting must remove upon task completion.
-  /// Because if you change the date to incompleted, I will not be able to determine a repeat date.
-  /// - Returns: Return todo object if todo is complete.
-  func removedRepeatDate() -> Self? {
-    guard self.complete else { return nil }
-    var new = self
-    new.repeatDate = nil
-    return new
-  }
-
   /// Whether it should be brought to our attention.
   /// - Parameter date: Date.
   /// - Returns: Returns true if attention is given.

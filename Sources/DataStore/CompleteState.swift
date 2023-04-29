@@ -31,11 +31,10 @@ public extension CompleteState {
     let targets: [(data: Todo, reference: DocumentReference)]
     targets = completes.values.compactMap { todo in
       guard let id = todo.id else { return nil }
-      var _todo = todo.removedRepeatDate() ?? todo
       let query: Query.Todo = .one(uid: todo.ownerId, dogId: todo.dogId, taskId: id)
-      return (data: _todo, reference: query.document())
+      return (data: todo, reference: query.document())
     }
-    try await db.updates(targets)
+    try await db.updates(targets, removeFields: ["repeatDate": FieldValue.delete()])
     let completedTodos = completes.values
     completes.removeAll()
     return Array(completedTodos)

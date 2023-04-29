@@ -136,12 +136,18 @@ public extension FirebaseFirestore.Firestore {
     try await documentReference.delete()
   }
 
-  func updates<T>(_ targets: [(data: T, reference: DocumentReference)]) async throws where T: Encodable {
+  func updates<T>(
+    _ targets: [(data: T, reference: DocumentReference)],
+    removeFields: Dictionary<String, FieldValue>? = nil
+  ) async throws where T: Encodable {
     let batch = batch()
     let encoder = Firestore.Encoder()
     for target in targets {
       let fields = try encoder.encode(target.data)
       batch.updateData(fields, forDocument: target.reference)
+      if let removeFields {
+        batch.updateData(removeFields, forDocument: target.reference)
+      }
     }
     try await batch.commit()
   }

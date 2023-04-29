@@ -28,7 +28,7 @@ struct TodoRouter: Routing {
     case .create:
       TodoCreatePage()
     case .detail(let todo):
-      UpdateTaskPage(todo: todo)
+      TodoUpdatePage(todo: todo)
     }
   }
 }
