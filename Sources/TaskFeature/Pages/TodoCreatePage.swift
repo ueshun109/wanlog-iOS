@@ -5,24 +5,6 @@ import Styleguide
 import SwiftUI
 
 public struct TodoCreatePage: View {
-  private struct UiState {
-    var allDay: Bool = false
-    var dogs: [Dog] = []
-    var expiredDate: Date = .init()
-    var loadingState: Loading = .idle
-    var memo: String = ""
-    var ownerId: String = ""
-    var priority: Priority = .medium
-    var repeatDate: RepeatDate?
-    var reminderDate: Set<ReminderDate> = []
-    var selectedDogs: Set<Dog> = []
-    var showAlert = false
-    var showDogsModal = false
-    var showReminderDateModal = false
-    var showRpeatDate = false
-    var title: String = ""
-  }
-
   private let authenticator: Authenticator = .live
   private let db = Firestore.firestore()
 
@@ -118,10 +100,7 @@ public struct TodoCreatePage: View {
       Button {
         Task {
           do {
-            for todo in todos() {
-              let query: Query.Todo = .perDog(uid: todo.ownerId, dogId: todo.dogId)
-              try await db.set(todo, collectionReference: query.collection())
-            }
+            try await makeNewTodos()
             uiState.loadingState = .loaded
             dismiss()
           } catch let loadingError as LoadingError {
@@ -136,29 +115,64 @@ public struct TodoCreatePage: View {
   }
 }
 
-private extension TodoCreatePage {
-  func todos() -> [Todo] {
-    uiState.selectedDogs.map { dog in
+// MARK: - UiState
+
+extension TodoCreatePage {
+  struct UiState {
+    var allDay: Bool = false
+    var dogs: [Dog] = []
+    var expiredDate: Date = .init()
+    var loadingState: Loading = .idle
+    var memo: String = ""
+    var ownerId: String = ""
+    var priority: Priority = .medium
+    var repeatDate: RepeatDate?
+    var reminderDate: Set<ReminderDate> = []
+    var selectedDogs: Set<Dog> = []
+    var showAlert = false
+    var showDogsModal = false
+    var showReminderDateModal = false
+    var showRpeatDate = false
+    var title: String = ""
+  }
+}
+
+private extension TodoCreatePage.UiState {
+  var todos: [Todo] {
+    selectedDogs.map { dog in
       let repeatDate: Timestamp?
-      if let date = uiState.repeatDate?.date(uiState.expiredDate) {
+      if let date = self.repeatDate?.date(expiredDate) {
         repeatDate = .init(date: date)
       } else {
         repeatDate = nil
       }
       return Todo(
-        content: uiState.title,
+        content: title,
         complete: false,
         dogId: dog.id!,
-        expiredDate: .init(date: uiState.expiredDate),
-        memo: uiState.memo,
-        ownerId: uiState.ownerId,
-        priority: uiState.priority,
-        reminderDate: uiState.reminderDate.map { .init(date: $0.date(uiState.expiredDate)) },
+        expiredDate: .init(date: expiredDate),
+        memo: memo,
+        ownerId: ownerId,
+        priority: priority,
+        reminderDate: reminderDate.map { .init(date: $0.date(expiredDate)) },
         repeatDate: repeatDate
       )
     }
   }
 }
+
+// MARK: - Methods
+
+private extension TodoCreatePage {
+  func makeNewTodos() async throws {
+    for todo in uiState.todos {
+      let query: Query.Todo = .perDog(uid: todo.ownerId, dogId: todo.dogId)
+      try await db.set(todo, collectionReference: query.collection())
+    }
+  }
+}
+
+// MARK: - Preview
 
 struct CreateTaskPage_Previews: PreviewProvider {
   static var previews: some View {

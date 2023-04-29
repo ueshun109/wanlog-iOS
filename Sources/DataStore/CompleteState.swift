@@ -24,16 +24,21 @@ public extension CompleteState {
     return completes[id]?.complete ?? false
   }
 
-  /// Change a todo to complete if todo is complete.
-  func toComplete() async throws {
+  @discardableResult
+  /// Change a todo to complete if todo is incomplete.
+  /// - Returns: Completed todos.
+  func toComplete() async throws -> [Todo] {
     let targets: [(data: Todo, reference: DocumentReference)]
     targets = completes.values.compactMap { todo in
       guard let id = todo.id else { return nil }
+      var _todo = todo.removedRepeatDate() ?? todo
       let query: Query.Todo = .one(uid: todo.ownerId, dogId: todo.dogId, taskId: id)
-      return (data: todo, reference: query.document())
+      return (data: _todo, reference: query.document())
     }
     try await db.updates(targets)
+    let completedTodos = completes.values
     completes.removeAll()
+    return Array(completedTodos)
   }
 
   func update(original: Todo, updated: Todo) async throws {

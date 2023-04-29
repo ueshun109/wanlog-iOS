@@ -8,6 +8,28 @@ public enum RepeatDate: String, Hashable, Identifiable, CaseIterable {
 
   public var id: String { rawValue }
 
+  public init?(timeInterval: TimeInterval) {
+    let day: TimeInterval = 60 * 60 * 24
+    let week: TimeInterval = day * 7
+    let monthWhenLeapYear: TimeInterval = 60 * 60 * 24 * 28
+    let monthWhenNotLeapYear: TimeInterval = 60 * 60 * 24 * 31
+    let leapYear: TimeInterval = 60 * 60 * 24 * 365
+    let notLeapYear: TimeInterval = 60 * 60 * 24 * 366
+
+    switch timeInterval {
+    case day:
+      self = .everyDay
+    case week:
+      self = .everyWeek
+    case monthWhenLeapYear...monthWhenNotLeapYear:
+      self = .everyMonth
+    case leapYear...notLeapYear:
+      self = .everyYear
+    default:
+      return nil
+    }
+  }
+
   public func date(_ date: Date, calendar: Calendar = .current) -> Date {
     switch self {
     case .everyDay:

@@ -6,28 +6,6 @@ import Styleguide
 import SwiftUI
 
 public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRoute {
-  private struct UiState {
-    var error: LoadingError?
-    /// Dog images.
-    var dogImages: [String?: UIImage] = [:]
-    /// Pagination page.
-    var nextPage = 1
-    /// Whether has next page.
-    var hasMore = false
-    /// Flag for whether to push transition.
-    var pushTransition: Bool = false
-    /// Firestore query.
-    var query: FirebaseFirestore.Query?
-    /// Show alert.
-    var showAlert = false
-    /// Show only incompleted task if `true`
-    var showOnlyIncompleted = true
-    /// Flag for whether to modal transition.
-    var showModal: Bool = false
-    /// ID of the logged-in user.
-    var uid: String?
-  }
-
   private let authenticator: Authenticator = .live
   private let db = Firestore.firestore()
   private let getDogList = DogUsecase.getDogList
@@ -230,7 +208,6 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
         let displayLastItemInSection = todos.last == todo
         let displayLastItemInAll = lastItem == todo
         guard displayLastItemInSection, displayLastItemInAll, uiState.hasMore else {
-          logger.debug(message: "additional: \(displayLastItemInSection), \(displayLastItemInAll), \(uiState.hasMore)")
           return
         }
         uiState.query = todoQuery?.query(
@@ -295,11 +272,7 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
     VStack {
       Spacer()
       if !completeState.completes.isEmpty {
-        Button {
-          Task {
-            try? await completeState.toComplete()
-          }
-        } label: {
+        Button(action: doneTodos) {
           Text("完了")
         }
         .buttonStyle(SmallButtonStyle())
@@ -307,6 +280,48 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
       }
     }
     .animation(.default, value: completeState.completes)
+  }
+}
+
+private extension TodoListPage {
+  func doneTodos() {
+    Task {
+      do {
+        let completed = try await completeState.toComplete()
+        for todo in completed.nextTodos() {
+          let query: Query.Todo = .perDog(uid: todo.ownerId, dogId: todo.dogId)
+          try await db.set(todo, collectionReference: query.collection())
+        }
+      } catch {
+        // TODO: Error handling
+      }
+    }
+  }
+}
+
+// MARK: - UiState
+
+extension TodoListPage {
+  struct UiState {
+    var error: LoadingError?
+    /// Dog images.
+    var dogImages: [String?: UIImage] = [:]
+    /// Pagination page.
+    var nextPage = 1
+    /// Whether has next page.
+    var hasMore = false
+    /// Flag for whether to push transition.
+    var pushTransition: Bool = false
+    /// Firestore query.
+    var query: FirebaseFirestore.Query?
+    /// Show alert.
+    var showAlert = false
+    /// Show only incompleted task if `true`
+    var showOnlyIncompleted = true
+    /// Flag for whether to modal transition.
+    var showModal: Bool = false
+    /// ID of the logged-in user.
+    var uid: String?
   }
 }
 

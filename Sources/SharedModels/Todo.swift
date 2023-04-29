@@ -119,9 +119,19 @@ public extension Todo {
   /// - Returns: Returns true if expired.
   func expired(date: Date = .now) -> Bool {
     let timeInterval: Int64 = expiredDate.seconds - Int64(date.timeIntervalSince1970)
-    logger.debug(message: "expiredDate: \(expiredDate.seconds), now: \(Int64(date.timeIntervalSince1970))")
-    logger.debug(message: "timeInterval: \(timeInterval)")
     return timeInterval < 0
+  }
+
+  /// Remove repeat setting.
+  ///
+  /// Repeat setting must remove upon task completion.
+  /// Because if you change the date to incompleted, I will not be able to determine a repeat date.
+  /// - Returns: Return todo object if todo is complete.
+  func removedRepeatDate() -> Self? {
+    guard self.complete else { return nil }
+    var new = self
+    new.repeatDate = nil
+    return new
   }
 
   /// Whether it should be brought to our attention.
@@ -161,5 +171,24 @@ public extension [Todo] {
     let removed = self.filter { $0.expired(date: now) }
     self = self.filter { !$0.expired(date: now) }
     return removed
+  }
+
+  /// Create a new todo by updating the due date and repeat date of the completed todo.
+  /// - Returns: New todo list.
+  func nextTodos() -> [Todo] {
+    let nextTodos: [Todo] = self.compactMap { todo in
+      guard todo.complete, let repeatDate = todo.repeatDate else { return nil }
+      let diff: TimeInterval = TimeInterval(repeatDate.seconds - todo.expiredDate.seconds)
+      var new = todo
+      new.complete = false
+      new.expiredDate = repeatDate
+      if let _repeatDate = RepeatDate(timeInterval: diff)?.date(new.expiredDate.dateValue()) {
+        new.repeatDate = Timestamp(date: _repeatDate)
+      } else {
+        new.repeatDate = nil
+      }
+      return new
+    }
+    return nextTodos
   }
 }
