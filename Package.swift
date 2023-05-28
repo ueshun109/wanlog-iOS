@@ -10,6 +10,7 @@ let package = Package(
   products: [
     .library(name: "AppFeature", targets: ["AppFeature"]),
     .library(name: "CertifiateFeature", targets: ["CertifiateFeature"]),
+    .library(name: "DogFeature", targets: ["DogFeature"]),
     .library(name: "TaskFeature", targets: ["TaskFeature"]),
     .library(name: "Styleguide", targets: ["Styleguide"]),
     .library(name: "SharedComponents", targets: ["SharedComponents"]),

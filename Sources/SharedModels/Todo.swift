@@ -170,6 +170,12 @@ public extension [Todo] {
       var new = todo
       new.complete = false
       new.expiredDate = repeatDate
+      let newReminderDate = todo.reminderDate?.compactMap { timestamp in
+        let diff = new.expiredDate.seconds - todo.expiredDate.seconds
+        return Timestamp(seconds: timestamp.seconds + diff, nanoseconds: 0)
+      }
+      new.reminderDate = newReminderDate
+      logger.debug(message: newReminderDate)
       if let _repeatDate = RepeatDate(timeInterval: diff)?.date(new.expiredDate.dateValue()) {
         new.repeatDate = Timestamp(date: _repeatDate)
       } else {
@@ -180,3 +186,19 @@ public extension [Todo] {
     return nextTodos
   }
 }
+
+public struct CombinationVaccineFrequency: Identifiable, Equatable {
+  public var id: String { title }
+  public var title: String
+
+  private init(title: String) {
+    self.title = title
+  }
+
+  public static let all: [Self] = [.first, .second, .third, .andMore]
+  public static let first: Self = .init(title: "1回目")
+  public static let second: Self = .init(title: "2回目")
+  public static let third: Self = .init(title: "3回目")
+  public static let andMore: Self = .init(title: "4回目以上")
+}
+

@@ -43,7 +43,7 @@ public struct DogDetailPage<Router: Routing>: View where Router._Route == DogDet
     ScrollView {
       VStack(spacing: Padding.large) {
         VStack(spacing: Padding.xSmall) {
-          HeaderSection(image: image)
+          header(image: image)
             .onTapGesture {
               uiState.showCamera.toggle()
             }

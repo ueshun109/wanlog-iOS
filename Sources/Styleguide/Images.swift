@@ -1,5 +1,7 @@
 import SwiftUI
 
+// MARK: - Bundle images
+
 public extension Image {
   static let bell = Self(systemName: "bell")
   static let booksVertical = Self(systemName: "books.vertical")
@@ -27,4 +29,42 @@ public extension Image {
   static let `repeat` = Self(systemName: "repeat")
   static let repeatCircle = Self(systemName: "repeat.circle")
   static let trash = Self(systemName: "trash")
+}
+
+// MARK: - Icon View
+
+public struct Icon: View {
+  private let image: UIImage?
+  private let placeholder: Image?
+
+  public init(
+    image: UIImage?,
+    placeholder: Image?
+  ) {
+    self.image = image
+    self.placeholder = placeholder
+  }
+
+  public var body: some View {
+    if let image {
+      Image(uiImage: image)
+        .resizable()
+        .scaledToFill()
+        .frame(width: 100, height: 100)
+        .clipShape(Circle())
+    } else {
+      ZStack {
+        Circle()
+          .fill(Color.Background.secondary)
+          .frame(width: 100, height: 100)
+
+        if let placeholder {
+          placeholder
+            .resizable()
+            .scaledToFit()
+            .frame(width: 60, height: 60)
+        }
+      }
+    }
+  }
 }

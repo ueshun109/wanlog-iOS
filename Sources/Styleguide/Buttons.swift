@@ -94,13 +94,21 @@ public struct EnterButtonStylePrimary: ButtonStyle {
 }
 
 public struct EnterButtonStyleSecondary: ButtonStyle {
-  public init() {}
+  private let backgroundColor: Color
+  private let foregroundColor: Color
+
+  public init(foregroundColor: Color, backgroundColor: Color) {
+    self.backgroundColor = backgroundColor
+    self.foregroundColor = foregroundColor
+  }
 
   public func makeBody(configuration: Configuration) -> some View {
     configuration.label
+      .padding(8)
       .fontWithLineHeight(font: .hiraginoSans(.subheadline))
-      .foregroundColor(.white)
-      .cornerRadius(64)
+      .foregroundColor(foregroundColor)
+      .background(backgroundColor)
+      .cornerRadius(16)
   }
 }
 
@@ -146,6 +154,51 @@ public struct SmallButtonStyle: ButtonStyle {
           .fill(colorScheme == .dark ? .white : .black)
       )
       .opacity(configuration.isPressed ? 0.9 : 1)
+  }
+}
+
+public struct ChipsStyle: ButtonStyle {
+  @Environment(\.colorScheme) var colorScheme
+
+  var selected: Bool
+  var selectedColor: Color {
+    switch (colorScheme, selected) {
+    case (.dark, _):
+      return Color.white
+    case (.light, true):
+      return Color.white
+    case (.light, false):
+      return Color.black
+    case (_, _):
+      fatalError("")
+    }
+  }
+
+  init(selected: Bool) {
+    self.selected = selected
+  }
+
+  public func makeBody(configuration: Configuration) -> some View {
+    HStack {
+      configuration.label
+        .font(.footnote)
+        .padding(Padding.xSmall)
+    }
+    .foregroundColor(selectedColor)
+    .background(
+      Capsule(style: .continuous)
+        .stroke(selected ? Color.clear : Color.gray, lineWidth: 1)
+    )
+    .background(
+      Capsule(style: .continuous)
+        .fill(selected ? Color.blue : Color.clear)
+    )
+  }
+}
+
+extension ButtonStyle where Self == ChipsStyle {
+  public static func chips(selected: Bool) -> ChipsStyle {
+    .init(selected: selected)
   }
 }
 

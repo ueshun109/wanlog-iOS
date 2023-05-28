@@ -14,7 +14,7 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
   @State private var route: DogRoute? = nil {
     didSet {
       switch route {
-      case .create:
+      case .createFirst:
         uiState.showModal = true
       case .detail:
         uiState.pushTransition = true
@@ -46,7 +46,7 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
     .toolbar {
       ToolbarItem(placement: .navigationBarTrailing) {
         Button {
-          route = .create
+          route = .createFirst
         } label: {
           Image.plusCircle
         }
