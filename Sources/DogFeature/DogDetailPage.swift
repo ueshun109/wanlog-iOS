@@ -7,7 +7,7 @@ import SwiftUI
 
 public struct DogDetailPage<Router: Routing>: View where Router._Route == DogDetailRoute {
   private struct UiState {
-    var biologicalSex: BiologicalSex = .male
+    var biologicalSex: Dog.BiologicalSex = .male
     var birthDate: Date = .init()
     var loading: Loading = .idle
     var name: String = ""

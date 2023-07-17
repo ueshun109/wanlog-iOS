@@ -7,22 +7,6 @@ import Styleguide
 import SwiftUI
 
 public struct DogsListPage<Router: Routing>: View where Router._Route == DogRoute {
-  private struct UiState {
-    var showModal = false
-    var pushTransition = false
-  }
-  @State private var route: DogRoute? = nil {
-    didSet {
-      switch route {
-      case .createFirst:
-        uiState.showModal = true
-      case .detail:
-        uiState.pushTransition = true
-      case .none:
-        break
-      }
-    }
-  }
   @State private var query: FirebaseFirestore.Query?
   @State private var uiState = UiState()
 
@@ -36,25 +20,14 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
   public var body: some View {
     WithFIRQuery(
       skeleton: Dog.skelton,
-      query: query
-    ) { data in
-      DogsSection(dogs: data) { route in
-        self.route = route
-      }
-    } onFailure: { error in
+      query: query,
+      onSuccess: list(dogs:)
+    ) { error in
     }
-    .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
-        Button {
-          route = .createFirst
-        } label: {
-          Image.plusCircle
-        }
-      }
-    }
+    .toolbar(content: toolbarItems)
     .navigate(
       router: router,
-      route: route,
+      route: uiState.route,
       isActive: $uiState.pushTransition,
       isPresented: $uiState.showModal,
       onDismiss: {}
@@ -66,73 +39,77 @@ public struct DogsListPage<Router: Routing>: View where Router._Route == DogRout
     }
   }
 
-  private struct DogsSection: View {
-    let dogs: [Dog]
-    let routing: (DogRoute?) -> Void
-
-    @ViewBuilder
-    var body: some View {
-      if dogs.isEmpty {
-        Text("ワンちゃんを迎い入れましょう")
-      } else {
-        List {
-          ForEach(dogs) { dog in
-            Button {
-              routing(.detail(dog: dog))
-            } label: {
-              DogItem(dog: dog)
-            }
+  @ViewBuilder
+  /// 📖 View to display a list of Dog.
+  func list(dogs: [Dog]) -> some View {
+    if dogs.isEmpty {
+      // TODO: 画像付きのEmptyViewに差し替える
+      Text("ワンちゃんを迎え入れましょう")
+    } else {
+      List {
+        ForEach(dogs) { dog in
+          Button {
+            uiState.route = .detail(dog: dog)
+          } label: {
+            dogItem(dog: dog)
           }
+          .padding(.vertical, Padding.xxSmall)
         }
       }
     }
   }
 
-  private struct DogItem: View {
-    @State var image: UIImage?
-
-    let storage: Storage = .storage()
-    let dog: Dog
-    var body: some View {
-      HStack {
-        if let image = image {
-          Image(uiImage: image)
-            .resizable()
-            .frame(width: 32, height: 32)
-            .scaledToFit()
-            .clipShape(Circle())
-        } else {
-          Image.person
-        }
-
-        VStack(alignment: .leading) {
-          Text(dog.name)
-            .font(.headline)
-
-          Text(toString(
-            dog.birthDate.dateValue(),
-            formatter: .yearAndMonthAndDayWithSlash
-          ))
-          .font(.subheadline)
-        }
-
-        Spacer()
+  /// 🐶 List item for Dog.
+  func dogItem(dog: Dog) -> some View {
+    Label {
+      Text(dog.name)
+        .font(.headline)
+    } icon: {
+      FIRStorageImage(reference: dog.iconRef) { image in
+        image
+          .resizable()
+          .scaledToFill()
+          .frame(width: 32, height: 32)
+          .clipShape(Circle())
+      } placeholder: {
+        Image.person
       }
-      .task {
-        guard image == nil else { return }
-        if let refString = dog.iconRef {
-          do {
-            let data = try await storage.reference(withPath: refString).get()
-            image = UIImage(data: data)
-          } catch {
-            // TODO: エラーハンドリング
-          }
+    }
+  }
+
+  @ToolbarContentBuilder
+  /// 🧰 Toolbar items
+  func toolbarItems() -> some ToolbarContent {
+    ToolbarItem(placement: .navigationBarTrailing) {
+      Button {
+        uiState.route = .createFirst {
+          uiState.showModal = false
         }
+      } label: {
+        Image.plusCircle
       }
     }
   }
 }
 
-func toString(_ date: Date, formatter: DateFormatter) -> String {
-  formatter.string(from: date)
+// MARK: - UiState
+
+extension DogsListPage {
+  struct UiState {
+    var pushTransition = false
+    var showModal = false
+
+    var route: DogRoute? = nil {
+      didSet {
+        switch route {
+        case .createFirst:
+          showModal = true
+        case .detail:
+          pushTransition = true
+        case .none:
+          break
+        }
+      }
+    }
+  }
 }

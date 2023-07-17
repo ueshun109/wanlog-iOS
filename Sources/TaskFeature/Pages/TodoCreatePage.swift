@@ -39,7 +39,7 @@ public struct TodoCreatePage: View {
           showReminderDate: $uiState.showReminderDateModal,
           showRepeatDate: $uiState.showRpeatDate,
           focused: _focused,
-          selectedReminderDate: uiState.reminderDate,
+          selectedReminderDate: uiState.reminderDates,
           selectedRepeatDate: uiState.repeatDate
         )
 
@@ -59,7 +59,7 @@ public struct TodoCreatePage: View {
         SingleSelectionList(selection: $uiState.repeatDate, headerTitle: "繰り返し")
       }
       .halfModal(isShow: $uiState.showReminderDateModal) {
-        MultiSelectionList(selections: $uiState.reminderDate, headerTitle: "リマインド通知")
+        MultiSelectionList(selections: $uiState.reminderDates, headerTitle: "リマインド通知")
       }
       .loading($uiState.loadingState, showAlert: $uiState.showAlert)
       .navigationTitle("新規作成")
@@ -125,9 +125,9 @@ extension TodoCreatePage {
     var loadingState: Loading = .idle
     var memo: String = ""
     var ownerId: String = ""
-    var priority: Priority = .medium
-    var repeatDate: RepeatDate?
-    var reminderDate: Set<ReminderDate> = []
+    var priority: Todo.Priority = .medium
+    var repeatDate: Todo.Interval?
+    var reminderDates: Set<Todo.ReminderDate> = []
     var selectedDogs: Set<Dog> = []
     var showAlert = false
     var showDogsModal = false
@@ -154,7 +154,7 @@ private extension TodoCreatePage.UiState {
         memo: memo,
         ownerId: ownerId,
         priority: priority,
-        reminderDate: reminderDate.map { .init(date: $0.date(expiredDate)) },
+        reminderDates: reminderDates.map { .init(date: $0.date(expiredDate)) },
         repeatDate: repeatDate
       )
     }

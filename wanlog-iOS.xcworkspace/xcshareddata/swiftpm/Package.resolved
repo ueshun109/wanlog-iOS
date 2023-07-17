@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/firebase/boringssl-SwiftPM.git",
         "state": {
           "branch": null,
-          "revision": "79db6516894a932d0ddaff3b05b9da1e4f6c4069",
-          "version": "0.9.0"
+          "revision": "dd3eda2b05a3f459fc3073695ad1b28659066eab",
+          "version": "0.9.1"
         }
       },
       {
@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/google/GoogleDataTransport.git",
         "state": {
           "branch": null,
-          "revision": "b905c49326b72211531ed9d7baa02d724828a8dc",
-          "version": "9.1.4"
+          "revision": "7874c1b48cbffd086ce8a052c4be873a78613775",
+          "version": "9.2.3"
         }
       },
       {
@@ -105,8 +105,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser.git",
         "state": {
           "branch": null,
-          "revision": "f3c9084a71ef4376f2fabbdf1d3d90a49f1fabdb",
-          "version": "1.1.2"
+          "revision": "9f39744e025c7d377987f30b03770805dcb0bcd1",
+          "version": "1.1.4"
         }
       },
       {

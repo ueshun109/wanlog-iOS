@@ -3,14 +3,14 @@ import Styleguide
 import SwiftUI
 
 struct SettingSection: View {
-  @Binding var priority: Priority
+  @Binding var priority: Todo.Priority
   @FocusState var focused: Bool
   @State private var showPopover = false
 
   var body: some View {
     Section {
       Menu {
-        ForEach(Priority.allCases, id: \.self) { item in
+        ForEach(Todo.Priority.allCases, id: \.self) { item in
           Button(item.title) {
             priority = item
           }

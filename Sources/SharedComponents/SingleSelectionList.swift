@@ -30,7 +30,7 @@ where E.RawValue == String, E.AllCases == Array<E>
 
 
 struct SingleSelectionListPreview: PreviewProvider {
-  @State private static var selection: ReminderDate? = nil
+  @State private static var selection: Todo.ReminderDate? = nil
   static var previews: some View {
     SingleSelectionList(selection: $selection, headerTitle: "test")
   }

@@ -6,17 +6,17 @@ import SharedComponents
 import SharedModels
 
 public struct DogCreateFirstPage<Router: Routing>: View where Router._Route == DogCreateRoute {
-  @Environment(\.dismiss) var dismiss
-  @State private var image: UIImage?
   @State private var uiState = UiState()
-  @StateObject private var dog = DogState()
+  @StateObject private var dog = DogCreateFlow()
 
   private let authenticator: Authenticator = .live
   private let db = Firestore.firestore()
   private let router: Router
+  private let dismiss: (() -> Void)?
 
-  public init(router: Router) {
+  public init(router: Router, dismiss: (() -> Void)? = nil) {
     self.router = router
+    self.dismiss = dismiss
   }
 
   public var body: some View {
@@ -31,10 +31,6 @@ public struct DogCreateFirstPage<Router: Routing>: View where Router._Route == D
         .padding(.horizontal, Padding.medium)
       }
       .background(Color.Background.primary)
-      .onChange(of: uiState.action) { new in
-        guard let new else { return }
-        run(action: new)
-      }
       .navigate(
         router: router,
         route: uiState.route,
@@ -42,6 +38,9 @@ public struct DogCreateFirstPage<Router: Routing>: View where Router._Route == D
         isPresented: .constant(false),
         onDismiss: nil
       )
+      .onChange(of: dog.dismiss) { new in
+        if new { dismiss?() }
+      }
       .confirmationDialog(
         "",
         isPresented: $uiState.showConfirmationDialog,
@@ -49,13 +48,13 @@ public struct DogCreateFirstPage<Router: Routing>: View where Router._Route == D
         actions: actionButtons
       )
       .sheet(isPresented: $uiState.showCamera) {
-        CameraView(image: $image)
+        CameraView(image: $dog.image)
       }
       .sheet(isPresented: $uiState.showPhotoLibrary) {
-        PhotoLibraryView(image: $image)
+        PhotoLibraryView(image: $dog.image)
       }
       .loading($uiState.loading, showAlert: $uiState.showAlert)
-      .navigationTitle("ワンちゃん迎い入れ 1/2")
+      .navigationTitle("ワンちゃん迎え入れ 1/2")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar(content: toolbarItems)
     }
@@ -64,10 +63,29 @@ public struct DogCreateFirstPage<Router: Routing>: View where Router._Route == D
   /// 🐶 Dog icon section
   var iconSection: some View {
     Section {
-      Icon(image: image, placeholder: Image.person)
-        .onTapGesture {
-          uiState.showConfirmationDialog.toggle()
+      Group {
+        if let image = dog.image {
+          Image(uiImage: image)
+            .resizable()
+            .scaledToFill()
+        } else {
+          ZStack {
+            Image.person
+              .resizable()
+              .frame(width: 60, height: 60)
+          }
+          .background(
+            Circle()
+              .fill(Color.Background.secondary)
+              .frame(width: 100, height: 100)
+          )
         }
+      }
+      .frame(width: 100, height: 100)
+      .clipShape(Circle())
+      .onTapGesture {
+        uiState.showConfirmationDialog.toggle()
+      }
     }
   }
 
@@ -96,7 +114,7 @@ public struct DogCreateFirstPage<Router: Routing>: View where Router._Route == D
     Section {
       PickerForm(
         item: $dog.biologicalSex,
-        items: BiologicalSex.allCases,
+        items: Dog.BiologicalSex.allCases,
         keyPath: \.title,
         title: "性別",
         style: .segmented
@@ -142,7 +160,7 @@ public struct DogCreateFirstPage<Router: Routing>: View where Router._Route == D
   func toolbarItems() -> some ToolbarContent {
     ToolbarItem(placement: .navigationBarLeading) {
       Button {
-        dismiss()
+        dog.dismiss = true
       } label: {
         Text("キャンセル")
       }
@@ -154,34 +172,57 @@ public struct DogCreateFirstPage<Router: Routing>: View where Router._Route == D
       } label: {
         Text("次へ")
       }
-      .disabled(dog.name.isEmpty || image == nil)
+      .disabled(dog.name.isEmpty || dog.image == nil)
     }
   }
 }
 
 // MARK: - State
 
-public class DogState: ObservableObject {
-  @Published var biologicalSex: BiologicalSex = .male
+public class DogCreateFlow: ObservableObject {
+  @Published var biologicalSex: Dog.BiologicalSex = .male
   @Published var bitrhDate: Date = .init()
   @Published var name: String = ""
-  @Published var combinationVaccineFrequency: CombinationVaccineFrequency?
+  @Published var numberOfCombinationVaccine: Dog.Preventions.CombinationVaccine.NumberOfTimes?
   @Published var combinationVaccineDate: Date = .now
   @Published var filariasisDosingDate: Date = .now
   @Published var rabiesVaccineDate: Date = .now
+  @Published var image: UIImage?
+  @Published var dismiss: Bool = false
 
-  func create() -> Dog {
-    Dog(
+  func create(
+    hasBeenVaccinatedWithCombinationVaccine: Bool,
+    hasBeenVaccinatedWithRabiesVaccine: Bool,
+    hasTakenHeartwormPill: Bool
+  ) -> Dog {
+    let combinationVaccine: Dog.Preventions.CombinationVaccine = .init(
+      latestDate: hasBeenVaccinatedWithCombinationVaccine ? combinationVaccineDate : nil,
+      number: numberOfCombinationVaccine
+    )
+    let heartwormPill: Dog.Preventions.HeartwormPill = .init(
+      latestDate: hasTakenHeartwormPill ? filariasisDosingDate : nil
+    )
+    let rabiesVaccine: Dog.Preventions.RabiesVaccine = .init(
+      latestDate: hasBeenVaccinatedWithRabiesVaccine ? rabiesVaccineDate : nil
+    )
+
+    return Dog(
       name: name,
       birthDate: .init(date: bitrhDate),
-      biologicalSex: biologicalSex
+      biologicalSex: biologicalSex,
+      preventions: .init(
+        combinationVaccine: combinationVaccine,
+        heartwormPill: heartwormPill,
+        rabiesVaccine: rabiesVaccine
+      )
     )
   }
 }
 
+// MARK: - UiState
+
 extension DogCreateFirstPage {
   struct UiState {
-    var action: Action?
     var loading: Loading = .idle
     var pushTransition: Bool = false
     var showAlert: Bool = false
@@ -195,52 +236,6 @@ extension DogCreateFirstPage {
           pushTransition = true
         case .none:
           break
-        }
-      }
-    }
-  }
-}
-
-// MARK: - Action
-
-extension DogCreateFirstPage {
-  enum Action: Equatable {
-    case tappedSaveButton
-  }
-
-  func run(action: Action) {
-    switch action {
-    case .tappedSaveButton:
-      Task {
-        defer {
-          uiState.action = nil
-        }
-        guard let uid = await authenticator.user()?.uid else { return }
-        uiState.loading = .loading
-        let query: Query.Dog = .all(uid: uid)
-        var newDog = dog.create()
-        do {
-          let docRef = try await db.set(newDog, collectionReference: query.collection())
-          let dogId = docRef.documentID
-          let storageRef = Storage.storage().dogRef(uid: uid, dogId: dogId)
-          guard let image = image else {
-            uiState.loading = .loaded
-            dismiss()
-            return
-          }
-          let oneMB = 1024 * 1024
-          if image.exceed(oneMB) {
-            let data = image.resize(to: oneMB)
-            try await storageRef.upload(data)
-          } else if let data = image.pngData() {
-            try await storageRef.upload(data)
-          }
-          newDog.iconRef = storageRef.fullPath
-          try await db.set(newDog, documentReference: docRef)
-          uiState.loading = .loaded
-          dismiss()
-        } catch let loadingError as LoadingError {
-          uiState.loading = .failed(error: loadingError)
         }
       }
     }

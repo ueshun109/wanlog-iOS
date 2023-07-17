@@ -30,7 +30,7 @@ where E.RawValue == String, E.AllCases == Array<E>
 
 
 struct MultiSelectionListPreview: PreviewProvider {
-  @State private static var selection: Set<ReminderDate> = []
+  @State private static var selection: Set<Todo.ReminderDate> = []
   static var previews: some View {
     MultiSelectionList(selections: $selection, headerTitle: "test")
   }

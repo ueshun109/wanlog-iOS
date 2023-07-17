@@ -22,7 +22,7 @@ class HeartwormPillTest: XCTestCase {
       XCTContext.runActivity(named: "Now is january") { _ in
         // 2023/04/01 00:00:00
         let expectedDate = Date(timeIntervalSince1970: 1680307200)
-        let heartwormPill = HeartwormPill()
+        let heartwormPill = Dog.Preventions.HeartwormPill()
         let nextDosingDate = heartwormPill.nextDosingDate(calendar: calendar, currentDate: january)
         XCTAssertEqual(nextDosingDate, expectedDate)
       }
@@ -30,14 +30,14 @@ class HeartwormPillTest: XCTestCase {
       XCTContext.runActivity(named: "Now is may") { _ in
         // 2023/04/01 00:00:00
         let expectedDate = Date(timeIntervalSince1970: 1680307200)
-        let heartwormPill = HeartwormPill()
+        let heartwormPill = Dog.Preventions.HeartwormPill()
         let nextDosingDate = heartwormPill.nextDosingDate(calendar: calendar, currentDate: march)
         XCTAssertEqual(nextDosingDate, expectedDate)
       }
 
       XCTContext.runActivity(named: "Now is march") { _ in
         let expectedDate = april
-        let heartwormPill = HeartwormPill()
+        let heartwormPill = Dog.Preventions.HeartwormPill()
         let nextDosingDate = heartwormPill.nextDosingDate(calendar: calendar, currentDate: april)
         XCTAssertEqual(nextDosingDate, expectedDate)
       }
@@ -47,7 +47,7 @@ class HeartwormPillTest: XCTestCase {
       XCTContext.runActivity(named: "LastGivenDate is march") { _ in
         // 2023/05/01 00:00:00
         let expectedDate = Date(timeIntervalSince1970: 1680307200)
-        let heartwormPill = HeartwormPill(lastGivenDate: march)
+        let heartwormPill = Dog.Preventions.HeartwormPill(latestDate: march)
         let nextDosingDate = heartwormPill.nextDosingDate(calendar: calendar, currentDate: march)
         XCTAssertEqual(nextDosingDate, expectedDate)
       }
@@ -55,14 +55,14 @@ class HeartwormPillTest: XCTestCase {
       XCTContext.runActivity(named: "LastGivenDate is may") { _ in
         // 2023/06/01 07:00:00
         let expectedDate = Date(timeIntervalSince1970: 1685775600)
-        let heartwormPill = HeartwormPill(lastGivenDate: may)
+        let heartwormPill = Dog.Preventions.HeartwormPill(latestDate: may)
         let nextDosingDate = heartwormPill.nextDosingDate(calendar: calendar, currentDate: may)
         XCTAssertEqual(nextDosingDate, expectedDate)
       }
 
       XCTContext.runActivity(named: "LastGivenDate is november") { _ in
         let expectedDate = december
-        let heartwormPill = HeartwormPill(lastGivenDate: november)
+        let heartwormPill = Dog.Preventions.HeartwormPill(latestDate: november)
         let nextDosingDate = heartwormPill.nextDosingDate(calendar: calendar, currentDate: november)
         XCTAssertEqual(nextDosingDate, expectedDate)
       }
@@ -70,7 +70,7 @@ class HeartwormPillTest: XCTestCase {
       XCTContext.runActivity(named: "LastGivenDate is december") { _ in
         // 2024/04/01 00:00:00
         let expectedDate = Date(timeIntervalSince1970: 1711929600)
-        let heartwormPill = HeartwormPill(lastGivenDate: december)
+        let heartwormPill = Dog.Preventions.HeartwormPill(latestDate: december)
         let nextDosingDate = heartwormPill.nextDosingDate(calendar: calendar, currentDate: december)
         XCTAssertEqual(nextDosingDate, expectedDate)
       }

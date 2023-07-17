@@ -38,7 +38,7 @@ public struct TodoUpdatePage: View {
           showReminderDate: $uiState.showReminderDateModal,
           showRepeatDate: $uiState.showRpeatDate,
           focused: _focused,
-          selectedReminderDate: uiState.reminderDate,
+          selectedReminderDate: uiState.reminderDates,
           selectedRepeatDate: uiState.repeatDate
         )
 
@@ -52,7 +52,7 @@ public struct TodoUpdatePage: View {
         SingleSelectionList(selection: $uiState.repeatDate, headerTitle: "繰り返し")
       }
       .halfModal(isShow: $uiState.showReminderDateModal) {
-        MultiSelectionList(selections: $uiState.reminderDate, headerTitle: "リマインド通知")
+        MultiSelectionList(selections: $uiState.reminderDates, headerTitle: "リマインド通知")
       }
       .loading($uiState.loadingState, showAlert: $uiState.showAlert)
       .background(Color.Background.primary)
@@ -67,8 +67,8 @@ public struct TodoUpdatePage: View {
       guard let uid = await authenticator.user()?.uid else { return }
       let repeatDateSeconds = todo.repeatDate?.seconds ?? 0
       let diff = TimeInterval(repeatDateSeconds - todo.expiredDate.seconds)
-      let reminderDate = todo.reminderDate?.compactMap {
-        ReminderDate(lhs: todo.expiredDate.dateValue(), rhs: $0.dateValue())
+      let reminderDates = todo.reminderDates?.compactMap {
+        Todo.ReminderDate(lhs: todo.expiredDate.dateValue(), rhs: $0.dateValue())
       } ?? []
 
       uiState.expiredDate = todo.expiredDate.dateValue()
@@ -76,7 +76,7 @@ public struct TodoUpdatePage: View {
       uiState.ownerId = uid
       uiState.priority = todo.priority
       uiState.repeatDate = .init(timeInterval: diff)
-      uiState.reminderDate = Set(reminderDate)
+      uiState.reminderDates = Set(reminderDates)
       uiState.title = todo.content
 
       do {
@@ -153,9 +153,9 @@ private extension TodoUpdatePage {
     var loadingState: Loading = .idle
     var memo: String = ""
     var ownerId: String = ""
-    var priority: Priority = .medium
-    var repeatDate: RepeatDate?
-    var reminderDate: Set<ReminderDate> = []
+    var priority: Todo.Priority = .medium
+    var repeatDate: Todo.Interval?
+    var reminderDates: Set<Todo.ReminderDate> = []
     var showAlert = false
     var showReminderDateModal = false
     var showRpeatDate = false
@@ -180,7 +180,7 @@ private extension TodoUpdatePage.UiState {
       memo: memo,
       ownerId: ownerId,
       priority: priority,
-      reminderDate: reminderDate.map { .init(date: $0.date(expiredDate)) },
+      reminderDates: reminderDates.map { .init(date: $0.date(expiredDate)) },
       repeatDate: repeatDate
     )
   }

@@ -4,6 +4,7 @@ import SwiftUI
 
 public extension Image {
   static let bell = Self(systemName: "bell")
+  static let birthdayCake = Self(systemName: "birthday.cake")
   static let booksVertical = Self(systemName: "books.vertical")
   static let calendar = Self(systemName: "calendar")
   static let cameraFill = Self(systemName: "camera.fill")

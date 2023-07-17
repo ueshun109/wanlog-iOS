@@ -272,7 +272,9 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
     VStack {
       Spacer()
       if !completeState.completes.isEmpty {
-        Button(action: doneTodos) {
+        Button {
+          Task { await doneTodos() }
+        } label: {
           Text("完了")
         }
         .buttonStyle(SmallButtonStyle())
@@ -284,17 +286,23 @@ public struct TodoListPage<Router: Routing>: View where Router._Route == TodoRou
 }
 
 private extension TodoListPage {
-  func doneTodos() {
-    Task {
-      do {
-        let completed = try await completeState.toComplete()
-        for todo in completed.nextTodos() {
-          let query: Query.Todo = .perDog(uid: todo.ownerId, dogId: todo.dogId)
-          try await db.set(todo, collectionReference: query.collection())
-        }
-      } catch {
-        // TODO: Error handling
+  func doneTodos() async {
+    do {
+      let completed = try await completeState.toComplete()
+      await createNextTodos(todos: completed)
+    } catch {
+      // TODO: Error handling
+    }
+  }
+
+  func createNextTodos(todos: [Todo]) async {
+    do {
+      for todo in todos.nextTodos() {
+        let query: Query.Todo = .perDog(uid: todo.ownerId, dogId: todo.dogId)
+        try await db.set(todo, collectionReference: query.collection())
       }
+    } catch {
+      // TODO: Error handling
     }
   }
 }

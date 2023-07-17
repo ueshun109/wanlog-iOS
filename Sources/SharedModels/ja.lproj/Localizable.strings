@@ -1,0 +1,16 @@
+// Prevension
+"Combination vaccine" = "混合ワクチン";
+"Combination vaccination" = "混合ワクチン接種";
+"Heartworm pill" = "フィラリア症予防薬";
+"Give heartworm pill" = "フィラリア症予防薬";
+"Rabies vaccine" = "狂犬病ワクチン";
+"Rabies vaccination" = "狂犬病ワクチン接種";
+
+// Biological sex
+"Male" = "オス";
+"Female" = "メス";
+
+// Priority
+"High" = "高";
+"Medium" = "中";
+"Low" = "低";

@@ -3,7 +3,7 @@ import SharedModels
 import XCTest
 
 final class ValidateCertificateTest: XCTestCase {
-  let dog = Dog(name: "taro", birthDate: .init(date: Date()), biologicalSex: .male, iconRef: nil)
+  let dog = Dog(name: "taro", birthDate: .init(date: Date()), biologicalSex: .male, iconRef: nil, preventions: .fake)
   func testValidation() {
     XCTContext.runActivity(named: "InValid") { _ in
       XCTContext.runActivity(named: "title is empty") { _ in

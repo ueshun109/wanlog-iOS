@@ -3,12 +3,12 @@ import FirebaseClient
 import SharedModels
 
 public enum DogRoute: Route {
-  case createFirst
+  case createFirst(dismiss: (() -> Void)?)
   case detail(dog: Dog)
 }
 
 public enum DogCreateRoute: Route {
-  case createSecond(state: DogState)
+  case createSecond(state: DogCreateFlow)
 }
 
 public enum DogDetailRoute: Route {

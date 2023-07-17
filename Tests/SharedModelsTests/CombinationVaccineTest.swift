@@ -19,7 +19,7 @@ class CombinationVaccineTest: XCTestCase {
     let fifthDate = Date(timeIntervalSince1970: 1750662000)
 
     XCTContext.runActivity(named: "lastVaccinationDate and numberOfTimes are nil") { _ in
-      let vaccine = CombinationVaccine()
+      let vaccine = Dog.Preventions.CombinationVaccine()
       let nextVaccinationDate = vaccine.nextVaccinationDate(
         calendar: calendar,
         birthDate: birthDate
@@ -28,9 +28,9 @@ class CombinationVaccineTest: XCTestCase {
     }
 
     XCTContext.runActivity(named: "numberOfTimes is .first") { _ in
-      let vaccine = CombinationVaccine(
-        lastVaccinationDate: firstDate,
-        numberOfCombinationVaccinations: .first
+      let vaccine = Dog.Preventions.CombinationVaccine(
+        latestDate: firstDate,
+        number: .first
       )
       let nextVaccinationDate = vaccine.nextVaccinationDate(
         calendar: calendar,
@@ -40,9 +40,9 @@ class CombinationVaccineTest: XCTestCase {
     }
 
     XCTContext.runActivity(named: "numberOfTimes is .second") { _ in
-      let vaccine = CombinationVaccine(
-        lastVaccinationDate: secondDate,
-        numberOfCombinationVaccinations: .second
+      let vaccine = Dog.Preventions.CombinationVaccine(
+        latestDate: secondDate,
+        number: .second
       )
       let nextVaccinationDate = vaccine.nextVaccinationDate(
         calendar: calendar,
@@ -52,9 +52,9 @@ class CombinationVaccineTest: XCTestCase {
     }
 
     XCTContext.runActivity(named: "numberOfTimes is .third") { _ in
-      let vaccine = CombinationVaccine(
-        lastVaccinationDate: thirdDate,
-        numberOfCombinationVaccinations: .third
+      let vaccine = Dog.Preventions.CombinationVaccine(
+        latestDate: thirdDate,
+        number: .third
       )
       let nextVaccinationDate = vaccine.nextVaccinationDate(
         calendar: calendar,
@@ -64,9 +64,9 @@ class CombinationVaccineTest: XCTestCase {
     }
 
     XCTContext.runActivity(named: "numberOfTimes is .moreThan") { _ in
-      let vaccine = CombinationVaccine(
-        lastVaccinationDate: fourthDate,
-        numberOfCombinationVaccinations: .moreThan
+      let vaccine = Dog.Preventions.CombinationVaccine(
+        latestDate: fourthDate,
+        number: .moreThan
       )
       let nextVaccinationDate = vaccine.nextVaccinationDate(
         calendar: calendar,
@@ -77,40 +77,46 @@ class CombinationVaccineTest: XCTestCase {
   }
 
   func testInitWithNumberOfTimes() {
+    // 2023/03/03 07:00:00
+    let birthDate = Date(timeIntervalSince1970: 1677826800)
+
     XCTContext.runActivity(named: "no time") { _ in
-      var components = DateComponents()
-      components.weekOfYear = 7
-      XCTAssertNil(CombinationVaccine.NumberOfTimes(weekOfAge: components))
+      // 2023/04/21 07:00:00
+      let now = Date(timeIntervalSince1970: 1682060400)
+      XCTAssertNil(Dog.Preventions.CombinationVaccine.NumberOfTimes(birthDate: birthDate, now: now))
     }
 
     XCTContext.runActivity(named: "first time") { _ in
-      var components = DateComponents()
-      components.weekOfYear = 8
-      XCTAssertEqual(CombinationVaccine.NumberOfTimes(weekOfAge: components), .first)
-      components.weekOfYear = 11
-      XCTAssertEqual(CombinationVaccine.NumberOfTimes(weekOfAge: components), .first)
+      // 2023/04/28 07:00:00
+      let start = Date(timeIntervalSince1970: 1682665200)
+      // 2023/05/19 07:00:00
+      let end = Date(timeIntervalSince1970: 1684479600)
+      XCTAssertEqual(Dog.Preventions.CombinationVaccine.NumberOfTimes(birthDate: birthDate, now: start), .first)
+      XCTAssertEqual(Dog.Preventions.CombinationVaccine.NumberOfTimes(birthDate: birthDate, now: end), .first)
     }
 
     XCTContext.runActivity(named: "second time") { _ in
-      var components = DateComponents()
-      components.weekOfYear = 12
-      XCTAssertEqual(CombinationVaccine.NumberOfTimes(weekOfAge: components), .second)
-      components.weekOfYear = 15
-      XCTAssertEqual(CombinationVaccine.NumberOfTimes(weekOfAge: components), .second)
+      // 2023/05/26 07:00:00
+      let start = Date(timeIntervalSince1970: 1685084400)
+      // 2023/06/23 06:59:59
+      let end = Date(timeIntervalSince1970: 1687503599)
+      XCTAssertEqual(Dog.Preventions.CombinationVaccine.NumberOfTimes(birthDate: birthDate, now: start), .second)
+      XCTAssertEqual(Dog.Preventions.CombinationVaccine.NumberOfTimes(birthDate: birthDate, now: end), .second)
     }
 
     XCTContext.runActivity(named: "third time") { _ in
-      var components = DateComponents()
-      components.weekOfYear = 16
-      XCTAssertEqual(CombinationVaccine.NumberOfTimes(weekOfAge: components), .third)
-      components.weekOfYear = 19
-      XCTAssertEqual(CombinationVaccine.NumberOfTimes(weekOfAge: components), .third)
+      // 2023/06/23 07:00:00
+      let start = Date(timeIntervalSince1970: 1687503600)
+      // 2023/07/21 06:59:59
+      let end = Date(timeIntervalSince1970: 1689922799)
+      XCTAssertEqual(Dog.Preventions.CombinationVaccine.NumberOfTimes(birthDate: birthDate, now: start), .third)
+      XCTAssertEqual(Dog.Preventions.CombinationVaccine.NumberOfTimes(birthDate: birthDate, now: end), .third)
     }
 
     XCTContext.runActivity(named: "more than") { _ in
-      var components = DateComponents()
-      components.weekOfYear = 20
-      XCTAssertEqual(CombinationVaccine.NumberOfTimes(weekOfAge: components), .moreThan)
+      // 2023/07/21 07:00:00
+      let now = Date(timeIntervalSince1970: 1689922800)
+      XCTAssertEqual(Dog.Preventions.CombinationVaccine.NumberOfTimes(birthDate: birthDate, now: now), .moreThan)
     }
   }
 }

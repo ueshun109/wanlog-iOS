@@ -29,6 +29,7 @@ public struct LoadingModifier: ViewModifier {
         content
         ProgressView()
       }
+      .overlay(Color.black.opacity(0.4))
     case .failed(let error):
       content
         .alert(error.localizedDescription, isPresented: $showAlert) {

@@ -3,7 +3,7 @@ import Styleguide
 import SwiftUI
 
 struct BiologicalSexSection: View {
-  @Binding var biologicalSex: BiologicalSex
+  @Binding var biologicalSex: Dog.BiologicalSex
 
   var body: some View {
     VStack(alignment: .leading, spacing: Padding.xSmall) {
@@ -16,8 +16,8 @@ struct BiologicalSexSection: View {
       }
 
       Picker("性別", selection: $biologicalSex) {
-        Text("オス").tag(BiologicalSex.male)
-        Text("メス").tag(BiologicalSex.female)
+        Text("オス").tag(Dog.BiologicalSex.male)
+        Text("メス").tag(Dog.BiologicalSex.female)
       }
       .pickerStyle(.segmented)
       .padding(Padding.small)

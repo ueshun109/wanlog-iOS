@@ -6,8 +6,8 @@ struct DateSection: View {
   @Binding var showReminderDate: Bool
   @Binding var showRepeatDate: Bool
   @FocusState var focused: Bool
-  let selectedReminderDate: Set<ReminderDate>
-  let selectedRepeatDate: RepeatDate?
+  let selectedReminderDate: Set<Todo.ReminderDate>
+  let selectedRepeatDate: Todo.Interval?
 
   var body: some View {
     Section {
